@@ -21,6 +21,10 @@ enable_resolves = true
 [python.resolves]
 python-default = "lock.txt"
 
+[mypy]
+version = "mypy==0.971"
+lockfile = "mypy_lockfile.txt"
+
 [anonymous-telemetry]
 enabled = true
 repo_id = "eb7c7d00-686b-4616-b5d2-566548ffcdf8"
