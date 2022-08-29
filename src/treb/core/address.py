@@ -24,8 +24,11 @@ class Address:
     def _validate(self):
         pass
 
-    def __eq__(self, other: "Address") -> bool:
-        return self.base == other.base and self.name == other.name
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, Address):
+            return self.base == other.base and self.name == other.name
+
+        return False
 
     def __hash__(self) -> int:
         return hash(str(self))
@@ -53,7 +56,7 @@ class Address:
             name = addr[1:]
 
         elif addr.startswith("//"):
-            base, _, name = addr[2:].rpartion(":")
+            base, _, name = addr[2:].rpartition(":")
 
         else:
             raise ValueError("invalid address format")

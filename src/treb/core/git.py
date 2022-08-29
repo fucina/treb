@@ -13,4 +13,4 @@ def get_current_commit(path: str) -> str:
     """
     repo = Repo(path)
 
-    return repo.head()
+    return repo.head().decode("utf-8")

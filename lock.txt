@@ -16,7 +16,8 @@
 //     "dulwich<0.21.0,>=0.20.45",
 //     "google-cloud-run<0.4.0,>=0.3.0",
 //     "rich<13.0.0,>=12.5.1",
-//     "toml<0.11.0,>=0.10.2"
+//     "toml<0.11.0,>=0.10.2",
+//     "types-toml<0.11.0,>=0.10.8"
 //   ]
 // }
 // --- END PANTS LOCKFILE METADATA ---
@@ -829,6 +830,24 @@
           "artifacts": [
             {
               "algorithm": "sha256",
+              "hash": "8300fd093e5829eb9c1fba69cee38130347d4b74ddf32d0a7df650ae55c2b599",
+              "url": "https://files.pythonhosted.org/packages/ae/2c/a642f8cfa7f9e67c29316bf04b7675db292d006275c67ec07f0c0069cf91/types_toml-0.10.8-py3-none-any.whl"
+            },
+            {
+              "algorithm": "sha256",
+              "hash": "b7e7ea572308b1030dc86c3ba825c5210814c2825612ec679eb7814f8dd9295a",
+              "url": "https://files.pythonhosted.org/packages/76/d0/11897ab7b3b2211be5c733e241d83401f5d37473c961ea5c9460393c6f45/types-toml-0.10.8.tar.gz"
+            }
+          ],
+          "project_name": "types-toml",
+          "requires_dists": [],
+          "requires_python": null,
+          "version": "0.10.8"
+        },
+        {
+          "artifacts": [
+            {
+              "algorithm": "sha256",
               "hash": "b930dd878d5a8afb066a637fbb35144fe7901e3b209d1cd4f524bd0e9deee997",
               "url": "https://files.pythonhosted.org/packages/6f/de/5be2e3eed8426f871b170663333a0f627fc2924cc386cd41be065e7ea870/urllib3-1.26.12-py2.py3-none-any.whl"
             },
@@ -897,7 +916,8 @@
     "dulwich<0.21.0,>=0.20.45",
     "google-cloud-run<0.4.0,>=0.3.0",
     "rich<13.0.0,>=12.5.1",
-    "toml<0.11.0,>=0.10.2"
+    "toml<0.11.0,>=0.10.2",
+    "types-toml<0.11.0,>=0.10.8"
   ],
   "requires_python": [
     "==3.10.*"

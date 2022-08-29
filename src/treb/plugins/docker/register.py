@@ -1,5 +1,5 @@
 """Register the Docker plugin."""
-from typing import List
+from typing import Sequence, Type
 
 from treb.core.artifact import ArtifactSpec
 from treb.core.step import Step
@@ -12,11 +12,11 @@ def namespace() -> str:
     return "docker"
 
 
-def artifacts() -> List[ArtifactSpec]:
+def artifacts() -> Sequence[Type[ArtifactSpec]]:
     """Returns all Docker artifacts."""
     return [DockerImageSpec]
 
 
-def steps() -> List[Step]:
+def steps() -> Sequence[Type[Step]]:
     """Returns all Docker steps."""
     return [DockerPush, DockerPull]

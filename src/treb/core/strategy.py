@@ -4,7 +4,7 @@ import functools
 import inspect
 import os
 from collections import defaultdict
-from typing import Iterable, Type
+from typing import Any, Dict, Generic, Iterable, TypeVar
 
 from attrs import define, evolve, fields
 from cattrs import structure, unstructure
@@ -16,9 +16,11 @@ from treb.core.deploy import discover_deploy_files
 from treb.core.plan import Action, ActionState, Plan
 from treb.core.step import Step
 
+ItemType = TypeVar("ItemType", ArtifactSpec, Step)
+
 
 @define(frozen=True, kw_only=True)
-class Node:
+class Node(Generic[ItemType]):
     """Represents a node in the strategy graph.
 
     Arguments:
@@ -27,7 +29,7 @@ class Node:
     """
 
     address: Address
-    item: ArtifactSpec | Step
+    item: ItemType
 
 
 class Strategy:
@@ -43,20 +45,20 @@ class Strategy:
         self._artifacts = {}
         self._rev_graph = defaultdict(dict)
 
-    def register_artifact(self, path: str, artifact: Type[ArtifactSpec]):
+    def register_artifact(self, path: str, artifact: ArtifactSpec):
         """Adds an artifact to the deploy strategy.
 
         Arguments:
             path: the base path to the artifact definition.
             artifact: the artifact spec to add.
         """
-        node = Node(
+        node = Node[ArtifactSpec](
             address=Address(base=path, name=artifact.name),
             item=artifact,
         )
         self._artifacts[node.address] = node
 
-    def register_step(self, path: str, step: Type[Step]):
+    def register_step(self, path: str, step: Step):
         """Adds a step to the deploy strategy.
 
         Arguments:
@@ -77,7 +79,7 @@ class Strategy:
             if not isinstance(value, Address):
                 raise TypeError("reference to steps or artifacts must be a valid address")
 
-            node = Node(
+            node = Node[Step](
                 address=address,
                 item=step,
             )
@@ -123,7 +125,7 @@ class Strategy:
             actions=actions,
         )
 
-    def _run_action(self, step_node: Node, results):
+    def _run_action(self, step_node: Node[Step], results):
         dep_addresses = self._rev_graph[step_node.address]
         dep_artifacts = {}
         for name, addr in dep_addresses.items():
@@ -140,7 +142,7 @@ class Strategy:
 
         return res
 
-    def _rollback_action(self, step_node: Node):
+    def _rollback_action(self, step_node: Node[Step]):
         print(f"rolling back action {step_node.address}")
         step_node.item.rollback(self._ctx)
 
@@ -156,7 +158,7 @@ class Strategy:
         Yields:
             A new state of the after each action state change.
         """
-        results = {}
+        results: Dict[str, Any] = {}
 
         for idx, action in enumerate(plan.actions):
             step_node = self._steps[action.address]

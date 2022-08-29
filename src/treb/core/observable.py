@@ -1,11 +1,16 @@
 """Helpers used to track class definitions via callbacks."""
+from typing import Callable, List, Type, TypeVar
+
+ObsType = TypeVar("ObsType", bound="Observable")
+
+Callback = Callable[[ObsType], None]
 
 
 class Observable:
     """Allows clients to register callback class inheriting from it."""
 
     # tracks all the callbacks to run on a new step defintion.
-    _callbacks = []
+    _callbacks: List[Callback] = []
 
     @classmethod
     def register_callback(cls, callback):
@@ -18,7 +23,7 @@ class Observable:
         cls._callbacks.append(callback)
 
     @classmethod
-    def unregister_callback(cls, callback):
+    def unregister_callback(cls: Type[ObsType], callback: Callback):
         """Drops a callback from the list of callbacks.
 
         Arguments:
