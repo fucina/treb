@@ -229,7 +229,7 @@ def prepare_strategy(ctx: Context) -> Strategy:
 
         exec_globals = {**ctx.artifact_specs}
 
-        exec(  # nosec pylint: disable=exec-used
+        exec(  # nosec[B102:exec_used] pylint: disable=exec-used
             deploy_file.code,
             exec_globals,
         )

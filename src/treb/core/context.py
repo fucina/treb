@@ -24,7 +24,7 @@ class Context:
     artifact_specs: Dict[str, "ArtifactSpec"]
 
 
-def load_context(config: Config) -> Context:
+def load_context(config: Config, revision: str) -> Context:
     """Prepares the context to be used in treb.
 
     Arguments:
@@ -33,15 +33,8 @@ def load_context(config: Config) -> Context:
     Retruns:
         The context.
     """
-    from treb.docker.artifact import DockerImageSpec
-    from treb.docker.steps import DockerPull, DockerPush
-
     return Context(
         config=config,
-        artifact_specs={
-            "docker_image": DockerImageSpec,
-            "docker_pull": DockerPull,
-            "docker_push": DockerPush,
-        },
-        revision="438a0191f73ea8a77ad2d88b4fc8613a52cec5cc",
+        artifact_specs={},
+        revision=revision,
     )

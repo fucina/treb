@@ -1,10 +1,12 @@
 """Main entrypoint for the `treb` command."""
 import os
+from typing import Optional
 
 import click
 
 from treb.core.config import load_config
 from treb.core.context import load_context
+from treb.core.git import get_current_commit
 from treb.core.plan import dump_plan, load_plan
 from treb.core.strategy import prepare_strategy
 from treb.utils import print_info, print_waiting
@@ -18,10 +20,12 @@ def cli():
 @cli.command()
 @click.option("-c", "--config", "config_path", default="./treb.toml")
 @click.option("-p", "--plan", "plan_path", default=None)
-def apply(config_path: str, plan_path: str):
+@click.option("-r", "--revision", default=None)
+def apply(config_path: str, plan_path: Optional[str], revision: Optional[str]):
     """Execute a deploy plan."""
     config = load_config(path=config_path)
-    ctx = load_context(config=config)
+    revision = revision or get_current_commit(path=config.project.repo_path)
+    ctx = load_context(config=config, revision=revision)
     strategy = prepare_strategy(ctx=ctx)
 
     if plan_path:
@@ -31,17 +35,19 @@ def apply(config_path: str, plan_path: str):
         strategy_plan = strategy.plan()
 
     with print_waiting("executing plan"):
-        for curr_plan in strategy.execute(strategy_plan):
+        for curr_plan in strategy.execute(strategy_plan):  # pylint: disable=not-an-iterable
             dump_plan(os.path.join(ctx.config.state.repo_path, "plan", ctx.revision), curr_plan)
 
 
 @cli.command()
 @click.option("-c", "--config", "config_path", default="./treb.toml")
 @click.option("-p", "--plan", "plan_path", default=None)
-def plan(config_path: str, plan_path: str):
+@click.option("-r", "--revision", default=None)
+def plan(config_path: str, plan_path: Optional[str], revision: Optional[str]):
     """Shows the plan for a deploy strategy without executing it."""
     config = load_config(path=config_path)
-    ctx = load_context(config=config)
+    revision = revision or get_current_commit(path=config.project.repo_path)
+    ctx = load_context(config=config, revision=revision)
     strategy = prepare_strategy(ctx=ctx)
 
     if plan_path:

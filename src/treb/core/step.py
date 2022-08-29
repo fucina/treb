@@ -3,9 +3,11 @@ from abc import ABC, abstractmethod
 
 from attrs import define
 
+from treb.core.observable import Observable
+
 
 @define(frozen=True, kw_only=True)
-class Step(ABC):
+class Step(ABC, Observable):
     """Base class to be used for all steps.
 
     Arguments:
@@ -14,34 +16,8 @@ class Step(ABC):
 
     name: str
 
-    # tracks all the callbacks to run on a new step defintion.
-    _callbacks = []
-
     def __attrs_post_init__(self):
-        self._run_callbacks()
-
-    def _run_callbacks(self):
-        for callback in self._callbacks:
-            callback(self)
-
-    @classmethod
-    def register_callback(cls, callback):
-        """Registers a new callback that will be executed when a new step gets
-        created.
-
-        Arguments:
-            callback: the callable to register.
-        """
-        cls._callbacks.append(callback)
-
-    @classmethod
-    def unregister_callback(cls, callback):
-        """Drops a callback from the list of callbacks.
-
-        Arguments:
-            callback: the callable to unregister.
-        """
-        cls._callbacks.remove(callback)
+        self.run_callbacks()
 
     @abstractmethod
     def run(self, ctx):
