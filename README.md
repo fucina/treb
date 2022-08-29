@@ -1,5 +1,7 @@
 # treb
 
+![build status](https://github.com/fucina/treb/actions/workflows/pants.yaml/badge.svg)
+
 Treb is a fast and user-friendly deploy system for applications running in the cloud.
 
 ## Overview
