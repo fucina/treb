@@ -3,15 +3,12 @@ treb."""
 from attrs import define
 
 from treb.core.observable import Observable
+from treb.core.spec import Spec
 
 
 @define(frozen=True, kw_only=True)
-class ArtifactSpec(Observable):
+class ArtifactSpec(Spec, Observable):
     """Base class for all artifact supported by treb."""
-
-    name: str
-
-    _callbacks = []
 
     def __attrs_post_init__(self):
         self.run_callbacks()

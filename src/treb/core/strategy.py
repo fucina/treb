@@ -227,7 +227,7 @@ def prepare_strategy(ctx: Context) -> Strategy:
         Step.register_callback(register_step)
         ArtifactSpec.register_callback(register_artifact)
 
-        exec_globals = {**ctx.artifact_specs}
+        exec_globals = {**ctx.specs}
 
         exec(  # nosec[B102:exec_used] pylint: disable=exec-used
             deploy_file.code,

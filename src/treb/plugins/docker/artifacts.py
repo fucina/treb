@@ -12,6 +12,10 @@ class DockerImageSpec(ArtifactSpec):
         image_name: the name of the image without the tag.
     """
 
+    @classmethod
+    def spec_name(cls) -> str:
+        return "docker_image"
+
     image_name: str
 
 

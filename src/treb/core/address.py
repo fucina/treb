@@ -1,15 +1,15 @@
-"""Representation of an address for any artefact or step."""
+"""Representation of an address for any artifact or step."""
 from attrs import define
 
 
 @define(frozen=True, kw_only=True)
 class Address:
-    """Represent an address used to identify a step or artefact in a deploy
+    """Represent an address used to identify a step or artifact in a deploy
     strategy.
 
     Arguments:
         base: base path of the directory where the deploy file is loacated with
-            this step/artefact definition.
+            this step/artifact definition.
     """
 
     base: str

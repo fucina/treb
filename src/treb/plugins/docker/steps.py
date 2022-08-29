@@ -4,7 +4,7 @@ from attrs import define
 
 from treb.core.context import Context
 from treb.core.step import Step
-from treb.docker.artifact import DockerImageArtifact, DockerImageSpec
+from treb.plugins.docker.artifacts import DockerImageArtifact, DockerImageSpec
 
 CLIENT = docker.from_env()
 
@@ -16,6 +16,10 @@ class DockerPull(Step):
     Arguments:
         origin: spec of the image to pull.
     """
+
+    @classmethod
+    def spec_name(cls) -> str:
+        return "docker_pull"
 
     origin: DockerImageSpec
 
@@ -37,6 +41,10 @@ class DockerPush(Step):
         origin: the local image to push.
         dest: spec of the image to push.
     """
+
+    @classmethod
+    def spec_name(cls) -> str:
+        return "docker_push"
 
     origin: DockerImageArtifact
     dest: DockerImageSpec

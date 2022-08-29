@@ -4,9 +4,11 @@ from typing import TYPE_CHECKING, Dict
 from attrs import define
 
 from treb.core.config import Config
+from treb.core.plugin import load_plugin
 
 if TYPE_CHECKING:
     from treb.core.artifact import ArtifactSpec
+    from treb.core.step import Step
 
 
 @define(frozen=True, kw_only=True)
@@ -16,12 +18,12 @@ class Context:
     Arguments:
         config: treb's configuration.
         revision: the SHA-256 commit used to build the artifacts to deploy.
-        artifact_specs: all the registered artifact specs.
+        specs: all the registered step and artifact specs.
     """
 
     config: Config
     revision: str
-    artifact_specs: Dict[str, "ArtifactSpec"]
+    specs: Dict[str, "ArtifactSpec | Step"]
 
 
 def load_context(config: Config, revision: str) -> Context:
@@ -33,8 +35,27 @@ def load_context(config: Config, revision: str) -> Context:
     Retruns:
         The context.
     """
+    specs = {}
+
+    for plugin_path in config.plugins:
+        plugin = load_plugin(plugin_path)
+
+        for artifact in plugin.artifacts:
+            name = artifact.spec_name()
+            if name in specs:
+                raise ValueError(f"spec with name {name} is already present")
+
+            specs[name] = artifact
+
+        for step in plugin.steps:
+            name = step.spec_name()
+            if name in specs:
+                raise ValueError(f"spec with name {name} is already present")
+
+            specs[name] = step
+
     return Context(
         config=config,
-        artifact_specs={},
+        specs=specs,
         revision=revision,
     )

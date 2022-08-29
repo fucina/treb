@@ -5,7 +5,7 @@ from typing import Optional
 import click
 
 from treb.core.config import load_config
-from treb.core.context import load_context
+from treb.core.context import Context, load_context
 from treb.core.git import get_current_commit
 from treb.core.plan import dump_plan, load_plan
 from treb.core.strategy import prepare_strategy
@@ -13,19 +13,22 @@ from treb.utils import print_info, print_waiting
 
 
 @click.group()
-def cli():
+@click.option("-c", "--config", "config_path", default="./treb.toml")
+@click.option("-r", "--revision", default=None)
+@click.pass_context
+def cli(ctx: click.Context, config_path: str, revision: Optional[str]):
     """Entrypoint for the treb command."""
+    config = load_config(path=config_path)
+    revision = revision or get_current_commit(path=config.project.repo_path)
+
+    ctx.obj = load_context(config=config, revision=revision)
 
 
 @cli.command()
-@click.option("-c", "--config", "config_path", default="./treb.toml")
 @click.option("-p", "--plan", "plan_path", default=None)
-@click.option("-r", "--revision", default=None)
-def apply(config_path: str, plan_path: Optional[str], revision: Optional[str]):
+@click.pass_obj
+def apply(ctx: Context, plan_path: Optional[str]):
     """Execute a deploy plan."""
-    config = load_config(path=config_path)
-    revision = revision or get_current_commit(path=config.project.repo_path)
-    ctx = load_context(config=config, revision=revision)
     strategy = prepare_strategy(ctx=ctx)
 
     if plan_path:
@@ -40,14 +43,10 @@ def apply(config_path: str, plan_path: Optional[str], revision: Optional[str]):
 
 
 @cli.command()
-@click.option("-c", "--config", "config_path", default="./treb.toml")
 @click.option("-p", "--plan", "plan_path", default=None)
-@click.option("-r", "--revision", default=None)
-def plan(config_path: str, plan_path: Optional[str], revision: Optional[str]):
+@click.pass_obj
+def plan(ctx: Context, plan_path: Optional[str]):
     """Shows the plan for a deploy strategy without executing it."""
-    config = load_config(path=config_path)
-    revision = revision or get_current_commit(path=config.project.repo_path)
-    ctx = load_context(config=config, revision=revision)
     strategy = prepare_strategy(ctx=ctx)
 
     if plan_path:
@@ -60,4 +59,4 @@ def plan(config_path: str, plan_path: Optional[str], revision: Optional[str]):
 
 
 if __name__ == "__main__":
-    cli()
+    cli()  # pylint: disable=no-value-for-parameter

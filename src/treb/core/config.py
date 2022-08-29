@@ -1,9 +1,10 @@
 """Functions and data structures used to represent and manage treb
 configuration."""
 from pathlib import Path
+from typing import List
 
 import toml
-from attrs import define
+from attrs import define, field
 from cattrs import structure
 
 
@@ -36,11 +37,13 @@ class Config:
     Arguments:
         state: confguration for the state storage.
         project: the project tracked by treb.
+        plugins: all the plugins to load.
         deploy_filename: name used to discover the deploy files.
     """
 
     state: StateConfig
     project: ProjectConfig
+    plugins: List[str] = field(factory=list)
     deploy_filename: str = "DEPLOY"
 
 
