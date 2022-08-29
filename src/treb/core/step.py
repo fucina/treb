@@ -1,79 +1,62 @@
-import inspect
+"""Base class for all the step implemations."""
 from abc import ABC, abstractmethod
 
-from attrs import NOTHING, define, field, make_class
-
-from treb.core.context import Context
-from treb.core.output import Error, Ok
+from attrs import define
 
 
 @define(frozen=True, kw_only=True)
 class Step(ABC):
+    """Base class to be used for all steps.
+
+    Arguments:
+        name: identify a step within a deploy file.
+    """
 
     name: str
 
-    callbacks = []
+    # tracks all the callbacks to run on a new step defintion.
+    _callbacks = []
 
     def __attrs_post_init__(self):
         self._run_callbacks()
 
     def _run_callbacks(self):
-        for cb in self.callbacks:
-            cb(self)
+        for callback in self._callbacks:
+            callback(self)
 
     @classmethod
     def register_callback(cls, callback):
-        cls.callbacks.append(callback)
+        """Registers a new callback that will be executed when a new step gets
+        created.
+
+        Arguments:
+            callback: the callable to register.
+        """
+        cls._callbacks.append(callback)
 
     @classmethod
     def unregister_callback(cls, callback):
-        cls.callbacks.remove(callback)
+        """Drops a callback from the list of callbacks.
+
+        Arguments:
+            callback: the callable to unregister.
+        """
+        cls._callbacks.remove(callback)
 
     @abstractmethod
     def run(self, ctx):
+        """Runs this step.
+
+        Arguments:
+            ctx: the context to use when executing the step.
+        """
         raise NotImplementedError
 
     @abstractmethod
     def rollback(self, ctx):
+        """Rolls back this step in case of a failure when running ``Step.run`.
+
+        Arguments:
+            ctx: the context to use when rolling back the step.
+        """
         raise NotImplementedError
-
-
-# def step(fn):
-#     signature = inspect.signature(fn)
-
-#     fields = {}
-
-#     for (idx, param) in enumerate(signature.parameters.values()):
-
-#         if param.kind not in (param.POSITIONAL_ONLY, param.POSITIONAL_OR_KEYWORD, param.KEYWORD_ONLY):
-#             raise TypeError("function cannot have variable arguments like *args or **kwargs")
-
-#         if param.annotation is param.empty:
-#             raise TypeError("all arguments must have a type annotation")
-
-#         if param.annotation is Context:
-#             pass
-
-#         elif idx == 0:
-#             raise TypeError("first argument must have type Context")
-
-#         else:
-#             fields[param.name] = field(
-#                 default=NOTHING if param.default is param.empty else param.default,
-#             )
-
-#     base_cls = make_class(name=fn.__name__, attrs=fields, bases=(Step,))
-
-#     print(fields)
-
-#     def run(self, *args, **kwargs):
-#         return Ok(fn(*args, **kwargs))
-
-#     def rollback(self):
-#         pass
-
-#     cls_dict = {
-#         "run": run,
-#         "rollback": rollback,
-#     }
-#     return type(fn.__name__, (base_cls,), cls_dict)

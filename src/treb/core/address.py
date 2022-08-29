@@ -1,10 +1,16 @@
-import abc
-
+"""Representation of an address for any artefact or step."""
 from attrs import define
 
 
 @define(frozen=True, kw_only=True)
 class Address:
+    """Represent an address used to identify a step or artefact in a deploy
+    strategy.
+
+    Arguments:
+        base: base path of the directory where the deploy file is loacated with
+            this step/artefact definition.
+    """
 
     base: str
     name: str
@@ -25,9 +31,25 @@ class Address:
         return hash(str(self))
 
     @classmethod
-    def from_string(cls, frombase: str, addr: str) -> "Address":
+    def from_string(cls, base: str, addr: str) -> "Address":
+        """Creates an instance of Address from its string representation.
+
+        The address can be either relative (i.e. `:image`, `pull-image`) or
+        absolute (i.e. `//foo:image`, `//bar/spam:pull-image`).
+
+        When an absolute address is passed, it will ignore the give base path.
+
+        Arguments:
+            base: the base directory to use if the address is relative i.e. `:image`.
+            addr: the address to convert.
+
+        Returns:
+            The address represented by the given string.
+
+        Raises:
+            ValueError: if the address is invalid.
+        """
         if addr.startswith(":"):
-            base = frombase
             name = addr[1:]
 
         elif addr.startswith("//"):

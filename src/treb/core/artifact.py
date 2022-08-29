@@ -1,10 +1,6 @@
 """Base classes and functions used to define and handle artifacts supported by
 treb."""
-from typing import Iterator, Type
-
 from attrs import define
-
-from treb.core.context import Context
 
 
 @define(frozen=True, kw_only=True)
@@ -13,22 +9,33 @@ class ArtifactSpec:
 
     name: str
 
-    callbacks = []
+    _callbacks = []
 
     def __attrs_post_init__(self):
         self._run_callbacks()
 
     def _run_callbacks(self):
-        for cb in self.callbacks:
-            cb(self)
+        for callback in self._callbacks:
+            callback(self)
 
     @classmethod
     def register_callback(cls, callback):
-        cls.callbacks.append(callback)
+        """Registers a new callback that will be executed when a new artifact
+        spec gets created.
+
+        Arguments:
+            callback: the callable to register.
+        """
+        cls._callbacks.append(callback)
 
     @classmethod
     def unregister_callback(cls, callback):
-        cls.callbacks.remove(callback)
+        """Drops a callback from the list of callbacks.
+
+        Arguments:
+            callback: the callable to unregister.
+        """
+        cls._callbacks.remove(callback)
 
 
 @define(frozen=True, kw_only=True)

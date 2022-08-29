@@ -1,7 +1,7 @@
+"""All the steps provided by the docker system."""
 import docker
 from attrs import define
 
-from treb.core.address import Address
 from treb.core.context import Context
 from treb.core.step import Step
 from treb.docker.artifact import DockerImageArtifact, DockerImageSpec
@@ -11,6 +11,11 @@ CLIENT = docker.from_env()
 
 @define(frozen=True, kw_only=True)
 class DockerPull(Step):
+    """Pulls a docker image from a remote registry.
+
+    Arguments:
+        origin: spec of the image to pull.
+    """
 
     origin: DockerImageSpec
 
@@ -26,6 +31,12 @@ class DockerPull(Step):
 
 @define(frozen=True, kw_only=True)
 class DockerPush(Step):
+    """Re-tag a local image and push it to a remote registry.
+
+    Arguments:
+        origin: the local image to push.
+        dest: spec of the image to push.
+    """
 
     origin: DockerImageArtifact
     dest: DockerImageSpec
