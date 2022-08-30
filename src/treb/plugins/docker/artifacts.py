@@ -17,6 +17,7 @@ class DockerImageSpec(ArtifactSpec):
         return "docker_image"
 
     image_name: str
+    tag_prefix: str = ""
 
 
 @define(frozen=True, kw_only=True)
