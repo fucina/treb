@@ -27,6 +27,13 @@ python-default = "lock.txt"
 version = "mypy==0.971"
 lockfile = "mypy_lockfile.txt"
 
+[docker]
+build_args = ["GIT_COMMIT"]
+
+[docker.registries.github]
+address = "ghcr.io/fucina"
+default = true
+
 [anonymous-telemetry]
 enabled = true
 repo_id = "eb7c7d00-686b-4616-b5d2-566548ffcdf8"

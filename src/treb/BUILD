@@ -11,4 +11,6 @@ python_sources()
 
 docker_image(
     name="docker",
+    image_tags=["commit-{build_args.GIT_COMMIT}"],
+    repository="treb"
 )

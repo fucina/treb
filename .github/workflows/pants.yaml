@@ -77,11 +77,14 @@ jobs:
     - name: Test
       run: |
         ./pants test ::
-    - name: Package / Run
+    - name: Login to GitHub registry
+      run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $ --password-stdin
+    - name: Package / Run / Publish
       run: |
+        export GIT_COMMIT=${{ github.sha }}
         # We also smoke test that our release process will work by running `package`.
         ./pants package ::
-        ./pants run src/treb/__main__.py -- --help
+        ./pants publish ::
     - name: Upload pants log
       uses: actions/upload-artifact@v2
       with:
