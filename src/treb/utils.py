@@ -26,12 +26,41 @@ def print_info(message: str):
     CONSOLE.print(f"{escape(message)}")
 
 
+_STATUS = None
+_STATUS_MESSAGE = None
+
+
 @contextlib.contextmanager
-def print_waiting(message: str):
+def print_waiting(message: str, sep: str = " → "):
     """Shows a spinner until the context is exited.
+
+    This context manager can be nested and it will concatenate the messages using
+    the given separator.
 
     Arguments:
         message: message to show while is context is still getting executed.
     """
-    with CONSOLE.status(message):
-        yield
+    global _STATUS, _STATUS_MESSAGE  # pylint: disable=global-statement
+
+    if _STATUS is None:
+        with CONSOLE.status(message) as status:
+            _STATUS = status
+            _STATUS_MESSAGE = [message]
+
+            try:
+                yield
+
+            finally:
+                _STATUS = None
+                _STATUS_MESSAGE = None
+
+    else:
+        _STATUS_MESSAGE.append(message)
+        _STATUS.update(sep.join(_STATUS_MESSAGE))
+
+        try:
+            yield
+
+        finally:
+            _STATUS.update(sep.join(_STATUS_MESSAGE))
+            _STATUS_MESSAGE.pop()
