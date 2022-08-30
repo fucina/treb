@@ -1,7 +1,7 @@
 """Functions and data structures used to represent and manage treb
 configuration."""
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 import toml
 from attrs import define, field
@@ -17,6 +17,9 @@ class StateConfig:
     """
 
     repo_path: str
+    push: bool = True
+    remote_location: str = "origin/main"
+    base_path: Optional[str] = None
 
 
 @define(frozen=True, kw_only=True)

@@ -1,11 +1,9 @@
 """Functions and data structures to handle and represent a strategy plan
 describing all the actions needed to complete a deployment."""
 import enum
-import json
 from typing import Dict, List, Optional
 
 from attrs import define
-from cattrs import structure, unstructure
 
 from treb.core.address import Address
 
@@ -53,27 +51,3 @@ class Plan:
     strategy."""
 
     actions: List[Action]
-
-
-def dump_plan(path: str, plan: Plan):
-    """Stores the plan in a file.
-
-    Arguments:
-        path: path of the file where the plan will be stored.
-        plan: plan to store.
-    """
-    with open(path, "w", encoding="utf-8") as plan_file:
-        encoded = unstructure(plan)
-        plan_file.write(json.dumps(encoded, indent=4, sort_keys=True))
-
-
-def load_plan(path: str) -> Plan:
-    """Loads a plan from a file.
-
-    Arguments:
-        path: path of the file where the plan is stored.
-    """
-    with open(path, encoding="utf-8") as plan_file:
-        decoded = json.loads(plan_file.read())
-
-        return structure(decoded, Plan)
