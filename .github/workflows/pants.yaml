@@ -28,13 +28,13 @@ jobs:
         # Capture the "pants_version = " line from config.
         PANTS_VERSION=$(grep -E '^pants_version\s*=' pants.toml)
         echo "::set-output name=pants_version::$PANTS_VERSION"
-    - uses: actions/cache@v2
+    - uses: actions/cache@v3
       id: cache_pants_setup
       with:
         path: |
           ~/.cache/pants/setup
         key: pants-setup-${{ steps.pants_version.outputs.pants_version }}
-    - uses: actions/cache@v2
+    - uses: actions/cache@v3
       id: cached_named_caches
       with:
         path: |
@@ -54,7 +54,7 @@ jobs:
     # then you may also want to preserve the local Pants cache (lmdb_store). However this must invalidate for
     # changes to any file that can affect the build, so may not be practical in larger repos.
     # A remote cache service integrates with Pants's fine-grained invalidation and avoids these problems.
-    - uses: actions/cache@v2
+    - uses: actions/cache@v3
       id: cache_lmdb_store
       with:
         path: |
