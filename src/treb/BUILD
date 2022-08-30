@@ -1,5 +1,5 @@
 pex_binary(
-    name="__main__",
+    name="bin",
     entry_point="__main__.py",
     dependencies=[
         # force plugins to be included even if they are not directly used anywhere else in the codebase.
@@ -8,3 +8,7 @@ pex_binary(
 )
 
 python_sources()
+
+docker_image(
+    name="docker",
+)

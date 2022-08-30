@@ -10,6 +10,8 @@ backend_packages = [
   "pants.backend.python.lint.isort",
   "pants.backend.python.lint.pylint",
   "pants.backend.python.typecheck.mypy",
+  "pants.backend.docker",
+  "pants.backend.docker.lint.hadolint",
 ]
 
 [python]
