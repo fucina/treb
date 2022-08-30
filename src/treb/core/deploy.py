@@ -6,6 +6,20 @@ from typing import Iterator
 from attrs import define
 
 
+class Vars(dict):
+    """Wraps a dictionary and provide access to the values using their keys as
+    attribute names.
+
+    This class is used to support variables within deploy files.
+    """
+
+    def __getattr__(self, name):
+        if name in self:
+            return self[name]
+
+        raise AttributeError("No such attribute: " + name)
+
+
 @define(frozen=True, kw_only=True)
 class DeployFile:
     """A deploy file loaded from the repository.

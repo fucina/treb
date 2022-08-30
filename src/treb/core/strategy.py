@@ -12,7 +12,7 @@ from cattrs import structure, unstructure
 from treb.core.address import Address
 from treb.core.artifact import Artifact, ArtifactSpec
 from treb.core.context import Context
-from treb.core.deploy import discover_deploy_files
+from treb.core.deploy import Vars, discover_deploy_files
 from treb.core.plan import Action, ActionState, Plan
 from treb.core.step import Step
 
@@ -229,7 +229,7 @@ def prepare_strategy(ctx: Context) -> Strategy:
         Step.register_callback(register_step)
         ArtifactSpec.register_callback(register_artifact)
 
-        exec_globals = {**ctx.specs}
+        exec_globals: Dict[str, Any] = {"var": Vars(ctx.config.vars), **ctx.specs}
 
         exec(  # nosec[B102:exec_used] pylint: disable=exec-used
             deploy_file.code,

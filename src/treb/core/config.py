@@ -1,7 +1,7 @@
 """Functions and data structures used to represent and manage treb
 configuration."""
 from pathlib import Path
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 import toml
 from attrs import define, field
@@ -48,6 +48,7 @@ class Config:
     project: ProjectConfig
     plugins: List[str] = field(factory=list)
     deploy_filename: str = "DEPLOY"
+    vars: Dict[str, Any]
 
 
 def load_config(path: Path | str) -> Config:
