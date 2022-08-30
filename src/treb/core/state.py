@@ -102,8 +102,10 @@ def save_revision(ctx: Context, plan: Plan):
     rev_path = get_revision(ctx)
     state_path = rev_path.joinpath("state.json")
 
+    revision = Revision(plan=plan)
+
     with open(state_path, "w", encoding="utf-8") as plan_file:
-        encoded = unstructure(plan)
+        encoded = unstructure(revision)
         plan_file.write(json.dumps(encoded, indent=4, sort_keys=True))
 
     git.commit(path=ctx.config.state.repo_path, message=f"update state for revision {ctx.revision}")
