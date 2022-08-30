@@ -133,5 +133,5 @@ dmypy.json
 /dist/
 /.pids
 
-# local files
-local/
+# examples
+examples/state/

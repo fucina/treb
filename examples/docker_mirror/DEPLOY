@@ -1,0 +1,20 @@
+docker_image(
+    name="gh-api",
+    image_name=f"${var.gh_repo}/app",
+)
+
+docker_pull(
+    name="pull-gh-api",
+    origin=":gh-api",
+)
+
+docker_image(
+    name="gcp-api",
+    image_name=f"${var.gcp_repo}/api",
+)
+
+docker_push(
+    name="push-gcp-api",
+    origin=":pull-gh-api",
+    dest=":gcp-api",
+)
