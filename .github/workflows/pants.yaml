@@ -84,11 +84,11 @@ jobs:
         export GIT_COMMIT=${{ github.sha }}
         # We also smoke test that our release process will work by running `package`.
         ./pants package ::
-      if: github.ref == 'refs/heads/main'
     - name: Publish
       run: |
         export GIT_COMMIT=${{ github.sha }}
         ./pants publish ::
+      if: github.ref == 'refs/heads/main'
     - name: Upload pants log
       uses: actions/upload-artifact@v2
       with:
