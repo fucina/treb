@@ -1,4 +1,5 @@
 """Main entrypoint for the `treb` command."""
+import os
 from typing import Optional
 
 import click
@@ -14,13 +15,17 @@ from treb.utils import print_info, print_waiting
 @click.group()
 @click.option("-c", "--config", "config_path", default="./treb.toml")
 @click.option("-r", "--revision", default=None)
+@click.option("--cwd", default=None)
 @click.pass_context
-def cli(ctx: click.Context, config_path: str, revision: Optional[str]):
+def cli(ctx: click.Context, config_path: str, revision: Optional[str], cwd: Optional[str]):
     """Entrypoint for the treb command."""
     config = load_config(path=config_path)
     revision = revision or get_current_commit(path=config.project.repo_path)
 
     ctx.obj = load_context(config=config, revision=revision)
+
+    if cwd is not None:
+        os.chdir(cwd)
 
 
 @cli.command()
