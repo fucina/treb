@@ -23,7 +23,16 @@ def print_info(message: str):
     Arguments:
         message: informational message to print.
     """
-    CONSOLE.print(f"{escape(message)}")
+    CONSOLE.print(escape(message))
+
+
+def log(message):
+    """Prints a message with contextual information (i.e. timestamp).
+
+    Arguments:
+        message: informational message to print.
+    """
+    CONSOLE.log(escape(message))
 
 
 _STATUS = None
@@ -43,7 +52,7 @@ def print_waiting(message: str, sep: str = " → "):
     global _STATUS, _STATUS_MESSAGE  # pylint: disable=global-statement
 
     if _STATUS is None:
-        with CONSOLE.status(message) as status:
+        with CONSOLE.status(escape(message)) as status:
             _STATUS = status
             _STATUS_MESSAGE = [message]
 
@@ -62,5 +71,5 @@ def print_waiting(message: str, sep: str = " → "):
             yield
 
         finally:
-            _STATUS.update(sep.join(_STATUS_MESSAGE))
+            _STATUS.update(escape(sep.join(_STATUS_MESSAGE)))
             _STATUS_MESSAGE.pop()

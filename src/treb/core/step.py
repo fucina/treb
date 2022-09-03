@@ -3,20 +3,16 @@ import abc
 
 from attrs import define
 
-from treb.core.observable import Observable
 from treb.core.spec import Spec
 
 
 @define(frozen=True, kw_only=True)
-class Step(Spec, Observable):
+class Step(Spec):
     """Base class to be used for all steps.
 
     Arguments:
         name: identify a step within a deploy file.
     """
-
-    def __attrs_post_init__(self):
-        self.run_callbacks()
 
     @abc.abstractmethod
     def run(self, ctx):
