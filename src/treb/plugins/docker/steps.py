@@ -5,7 +5,7 @@ from attrs import define
 from treb.core.context import Context
 from treb.core.step import Step
 from treb.plugins.docker.artifacts import DockerImageArtifact, DockerImageSpec
-from treb.utils import print_waiting
+from treb.utils import log, print_waiting
 
 CLIENT = docker.from_env()
 
@@ -28,7 +28,9 @@ class DockerPull(Step):
         tag = f"{self.origin.image_name}:{self.origin.tag_prefix}{ctx.revision}"
 
         with print_waiting("pulling docker image"):
+            log(f"pulling docker image {tag}")
             CLIENT.images.pull(tag)
+            log(f"pulled docker image {tag}")
 
         return DockerImageArtifact(tag=tag)
 
@@ -59,7 +61,9 @@ class DockerPush(Step):
         image.tag(dest_tag)
 
         with print_waiting("pushing docker image"):
+            log(f"pushing docker image from {self.origin.tag} to {dest_tag}")
             CLIENT.images.push(dest_tag)
+            log(f"pushed docker image from {self.origin.tag} to {dest_tag}")
 
         return DockerImageArtifact(tag=dest_tag)
 

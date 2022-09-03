@@ -1,2 +1,8 @@
 [flake8]
 max-line-length = 100
+
+ignore =
+    # Rule: Whitespace before ':'
+    #
+    # No need for this rule because the styling is already handled by Black.
+    E203

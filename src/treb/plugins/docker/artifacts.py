@@ -22,6 +22,6 @@ class DockerImageSpec(ArtifactSpec):
 
 @define(frozen=True, kw_only=True)
 class DockerImageArtifact(Artifact):
-    """An artifact represetning a tagged and existing Docker iamge."""
+    """An artifact representing a tagged and existing Docker iamge."""
 
     tag: str

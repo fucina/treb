@@ -18,8 +18,6 @@ backend_packages = [
 interpreter_constraints = ["CPython==3.10.*"]
 enable_resolves = true
 
-[python-infer]
-
 [python.resolves]
 python-default = "lock.txt"
 
