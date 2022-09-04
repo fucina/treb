@@ -161,28 +161,20 @@ class CloudRunDeploy(Step):
 
             service.template.containers[0].image = self.image.tag
 
-        traffic = [
+        service.traffic = [
             run_v2.TrafficTarget(
                 type_=(run_v2.TrafficTargetAllocationType.TRAFFIC_TARGET_ALLOCATION_TYPE_REVISION),
                 revision=revision_id,
-                percent=self.traffic_percent,
-                tag="",
-            )
+                percent=min(self.traffic_percent, 100),
+                tag="latest",
+            ),
+            run_v2.TrafficTarget(
+                type_=(run_v2.TrafficTargetAllocationType.TRAFFIC_TARGET_ALLOCATION_TYPE_REVISION),
+                revision=prev_revision_id,
+                percent=100 - self.traffic_percent,
+                tag="previous",
+            ),
         ]
-
-        if 100 - self.traffic_percent > 0:
-            traffic.append(
-                run_v2.TrafficTarget(
-                    type_=(
-                        run_v2.TrafficTargetAllocationType.TRAFFIC_TARGET_ALLOCATION_TYPE_REVISION
-                    ),
-                    revision=prev_revision_id,
-                    percent=100 - self.traffic_percent,
-                    tag="",
-                )
-            )
-
-        service.traffic = traffic
 
         with print_waiting(f"deploying new service {service.name}"):
             log(
