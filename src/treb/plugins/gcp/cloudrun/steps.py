@@ -214,10 +214,9 @@ class CloudRunDeploy(Step):
         service.template.revision = annotations.previous_revision_id
 
         with print_waiting("rolling back service"):
-            log(f"switching back to old service revision {annotations.previous_revision_id}")
             request = run_v2.UpdateServiceRequest(service=service)
 
             operation = CLIENT.update_service(request=request)
             service = operation.result()
 
-            log(f"switched back to old service revision {annotations.previous_revision_id}")
+            log(f"rolled back to service revision {annotations.previous_revision_id}")

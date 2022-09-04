@@ -28,7 +28,6 @@ class DockerPull(Step):
         tag = f"{self.origin.image_name}:{self.origin.tag_prefix}{ctx.revision}"
 
         with print_waiting("pulling docker image"):
-            log(f"pulling docker image {tag}")
             CLIENT.images.pull(tag)
             log(f"pulled docker image {tag}")
 
@@ -61,7 +60,6 @@ class DockerPush(Step):
         image.tag(dest_tag)
 
         with print_waiting("pushing docker image"):
-            log(f"pushing docker image from {self.origin.tag} to {dest_tag}")
             CLIENT.images.push(dest_tag)
             log(f"pushed docker image from {self.origin.tag} to {dest_tag}")
 

@@ -36,7 +36,7 @@ def apply(ctx: Context, force: bool):
     log("initializing project state")
     init_state(ctx=ctx)
 
-    log("prepare strategy")
+    log("preparing strategy")
     strategy = prepare_strategy(ctx=ctx)
 
     log("initializing revision state")
