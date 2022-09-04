@@ -8,6 +8,7 @@ from treb.core.artifact import Artifact, ArtifactSpec
 class CloudRunServiceArtifact(Artifact):
     """An artifact representing a Cloud Run Service on GCP."""
 
+    service_name: str
     revision_id: str
     uri: str
 

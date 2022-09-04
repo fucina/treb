@@ -4,7 +4,7 @@ from typing import Sequence, Type
 from treb.core.artifact import ArtifactSpec
 from treb.core.step import Step
 from treb.plugins.gcp.cloudrun.artifacts import CloudRunServiceSpec
-from treb.plugins.gcp.cloudrun.steps import CloudRunReplace
+from treb.plugins.gcp.cloudrun.steps import CloudRunDeploy
 
 
 def namespace() -> str:
@@ -19,4 +19,4 @@ def artifacts() -> Sequence[Type[ArtifactSpec]]:
 
 def steps() -> Sequence[Type[Step]]:
     """Returns all GCP Cloud Run steps."""
-    return [CloudRunReplace]
+    return [CloudRunDeploy]

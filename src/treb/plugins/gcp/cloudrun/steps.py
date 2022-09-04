@@ -84,7 +84,7 @@ def clean_annotations(annotations: Mapping[str, str]) -> Dict[str, str]:
     }
 
 
-def prepare_revision_id(service_name: str, revision: str, timestamp: int) -> str:
+def prepare_revision_id(revision: str, timestamp: int) -> str:
     """Generates a revision ID for a new Cloud Run service revision used to
     identify a service revision.
 
@@ -98,14 +98,13 @@ def prepare_revision_id(service_name: str, revision: str, timestamp: int) -> str
     Returns:
         The revision ID for the new service revision.
     """
-    service_name = service_name.split("/")[-1]
     postfix = hex(timestamp)[2:].lower()
 
-    return f"{service_name}-{revision}-{postfix}"
+    return f"rev-{revision}-{postfix}"
 
 
 @define(frozen=True, kw_only=True)
-class CloudRunReplace(Step):
+class CloudRunDeploy(Step):
     """Replaces the image of the service with the one built from the current
     revision.
 
@@ -126,10 +125,11 @@ class CloudRunReplace(Step):
 
     @classmethod
     def spec_name(cls) -> str:
-        return "cloudrun_replace"
+        return "cloudrun_deploy"
 
-    service: CloudRunServiceSpec
+    service: CloudRunServiceSpec | CloudRunServiceArtifact
     image: DockerImageArtifact
+    traffic_percent: int = 100
 
     def run(self, ctx: Context) -> CloudRunServiceArtifact:
         request = run_v2.GetServiceRequest(
@@ -137,32 +137,58 @@ class CloudRunReplace(Step):
         )
         service = CLIENT.get_service(request)
 
-        annotations = ServiceAnnotations(
-            revision=ctx.revision, previous_revision_id=service.template.revision
-        )
+        if isinstance(self.service, CloudRunServiceSpec):
+            annotations = ServiceAnnotations(
+                revision=ctx.revision, previous_revision_id=service.template.revision
+            )
+            prev_revision_id = service.template.revision
 
-        revision_id = prepare_revision_id(service.name, ctx.revision, int(time.time()))
+            revision_id = prepare_revision_id(ctx.revision, int(time.time()))
 
-        service.template.revision = revision_id
-        service.template.containers[0].image = self.image.tag
+            service.template.revision = revision_id
+            service.template.containers[0].image = self.image.tag
 
-        service.annotations = {
-            **service.annotations,
-            **encode_annotations(annotations),
-        }
+            service.annotations = {
+                **service.annotations,
+                **encode_annotations(annotations),
+            }
 
-        with print_waiting("deploying new service"):
-            log(f"creating a new service revision {revision_id}")
-            service.traffic = [
+        elif isinstance(self.service, CloudRunServiceArtifact):
+            annotations = load_annotations(service.annotations)
+
+            prev_revision_id = annotations.previous_revision_id
+            revision_id = service.template.revision
+
+            service.template.containers[0].image = self.image.tag
+
+        traffic = [
+            run_v2.TrafficTarget(
+                type_=(run_v2.TrafficTargetAllocationType.TRAFFIC_TARGET_ALLOCATION_TYPE_REVISION),
+                revision=revision_id,
+                percent=self.traffic_percent,
+                tag="",
+            )
+        ]
+
+        if 100 - self.traffic_percent > 0:
+            traffic.append(
                 run_v2.TrafficTarget(
                     type_=(
                         run_v2.TrafficTargetAllocationType.TRAFFIC_TARGET_ALLOCATION_TYPE_REVISION
                     ),
-                    revision=revision_id,
-                    percent=100,
+                    revision=prev_revision_id,
+                    percent=100 - self.traffic_percent,
                     tag="",
                 )
-            ]
+            )
+
+        service.traffic = traffic
+
+        with print_waiting(f"deploying new service {service.name}"):
+            log(
+                f"creating a new service revision {revision_id} "
+                f"serving {self.traffic_percent}% of the traffic"
+            )
 
             request = run_v2.UpdateServiceRequest(service=service)
 
@@ -172,6 +198,7 @@ class CloudRunReplace(Step):
             log(f"created a new service revision {revision_id}")
 
         return CloudRunServiceArtifact(
+            service_name=self.service.service_name,
             revision_id=service.template.revision,
             uri=service.uri,
         )

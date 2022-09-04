@@ -2,6 +2,7 @@
 import copy
 import inspect
 import os
+import types
 from collections import defaultdict
 from typing import Any, Dict, Generic, Iterable, Mapping, Type, TypeVar, get_args, get_origin
 
@@ -84,6 +85,10 @@ def extract_addresses(arg_type: Type[ArgType], value: Any, base_path: str):
     origin = get_origin(arg_type)
     if origin is not None:
         args = get_args(arg_type)
+
+        if issubclass(origin, types.UnionType):
+            if any(True for arg in args if is_addressable_type(arg)):
+                return make_address(value, base_path)
 
         if issubclass(origin, dict):
             _, value_type = args
