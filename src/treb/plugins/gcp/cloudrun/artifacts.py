@@ -1,4 +1,6 @@
 """Implementation artifacts used to represt Docker images."""
+from urllib.parse import urlparse, urlunparse
+
 from attrs import define
 
 from treb.core.artifact import Artifact, ArtifactSpec
@@ -11,6 +13,18 @@ class CloudRunServiceArtifact(Artifact):
     service_name: str
     revision_id: str
     uri: str
+
+    def latest_uri(self) -> str:
+        uri = urlparse(self.uri)
+        uri = uri._replace(netloc=f"latest---{uri.netloc}")
+
+        return urlunparse(uri)
+
+    def previous_uri(self) -> str:
+        uri = urlparse(self.uri)
+        uri = uri._replace(netloc=f"previous---{uri.netloc}")
+
+        return urlunparse(uri)
 
 
 @define(frozen=True, kw_only=True)

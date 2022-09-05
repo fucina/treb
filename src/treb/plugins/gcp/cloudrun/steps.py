@@ -125,7 +125,7 @@ class CloudRunDeploy(Step):
 
     @classmethod
     def spec_name(cls) -> str:
-        return "cloudrun_deploy"
+        return "gcp_cloudrun_deploy"
 
     service: CloudRunServiceSpec | CloudRunServiceArtifact
     image: DockerImageArtifact

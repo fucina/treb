@@ -11,13 +11,14 @@ from cattrs import structure, unstructure
 
 from treb.core.address import Address
 from treb.core.artifact import Artifact, ArtifactSpec
+from treb.core.check import Check
 from treb.core.context import Context
 from treb.core.deploy import Vars, discover_deploy_files
 from treb.core.plan import Action, ActionState, Plan
 from treb.core.step import Step
 from treb.utils import log
 
-ItemType = TypeVar("ItemType", ArtifactSpec, Step)
+ItemType = TypeVar("ItemType", ArtifactSpec, Step, Check)
 
 
 @define(frozen=True, kw_only=True)
@@ -42,7 +43,7 @@ def is_addressable_type(type_) -> bool:
     Returns:
         True if it can be used to instantiate a node. Otherwise false.
     """
-    return issubclass(type_, (Artifact, ArtifactSpec, Step))
+    return istype(type_, (Artifact, ArtifactSpec, Step))
 
 
 def make_address(value: object, base_path: str) -> Address:
@@ -67,6 +68,14 @@ def make_address(value: object, base_path: str) -> Address:
     raise TypeError("reference to steps or artifacts must be a valid address")
 
 
+def istype(origin, type_):
+    try:
+        return issubclass(origin, type_)
+
+    except TypeError:
+        return False
+
+
 ArgType = TypeVar("ArgType")
 
 
@@ -86,11 +95,10 @@ def extract_addresses(arg_type: Type[ArgType], value: Any, base_path: str):
     if origin is not None:
         args = get_args(arg_type)
 
-        if issubclass(origin, types.UnionType):
+        if istype(origin, types.UnionType):
             if any(True for arg in args if is_addressable_type(arg)):
                 return make_address(value, base_path)
-
-        if issubclass(origin, dict):
+        if istype(origin, dict):
             _, value_type = args
 
             return {
@@ -191,6 +199,29 @@ class Strategy:
             if addresses is not None:
                 self._rev_graph[node.address][field.name] = addresses
 
+    def register_check(self, path: str, check: Check):
+        """Adds a check to the deploy strategy.
+
+        Arguments:
+            path: the base path to the check definition.
+            check: the check spec to add.
+        """
+        address = Address(base=path, name=check.name)
+
+        node = Node[Check](
+            address=address,
+            item=check,
+        )
+
+        self._steps[address] = node
+
+        for field in fields(type(check)):
+            value = getattr(check, field.name)
+
+            addresses = extract_addresses(field.type, value, path)
+            if addresses is not None:
+                self._rev_graph[node.address][field.name] = addresses
+
     def plan(self) -> Plan:
         """Generates a new plan for the deployment strategy."""
         steps = copy.deepcopy(self._steps)
@@ -229,15 +260,22 @@ class Strategy:
             actions=actions,
         )
 
-    def _run_action(self, step_node: Node[Step], results):
+    def _run_action(self, node: Node[Step | Check], results):
         dep_artifacts = resolve_addresses(
             {addr: art.item for addr, art in self._artifacts.items()} | results,
-            self._rev_graph[step_node.address],
+            self._rev_graph[node.address],
         )
 
-        step = evolve(step_node.item, **dep_artifacts)
+        item = evolve(node.item, **dep_artifacts)
 
-        res = step.run(self._ctx)
+        if isinstance(item, Step):
+            res = item.run(self._ctx)
+
+        elif isinstance(item, Check):
+            res = item.check(self._ctx)
+
+        else:
+            raise TypeError(f"invalid node type {item.__class__.__name__}")
 
         return res
 
@@ -320,6 +358,9 @@ def prepare_strategy(ctx: Context) -> Strategy:
 
             elif issubclass(cls, ArtifactSpec):
                 strategy.register_artifact(base, item)
+
+            elif issubclass(cls, Check):
+                strategy.register_check(base, item)
 
             else:
                 raise TypeError(f"cannot register item of type {cls.__name__}")

@@ -1,10 +1,12 @@
 """Helpers used to add step and artifact specs to treb."""
 from importlib import import_module
-from typing import List
+from typing import List, Sequence
 
 from attrs import define
 
 from treb.core.artifact import ArtifactSpec
+from treb.core.check import Check
+from treb.core.spec import Spec
 from treb.core.step import Step
 
 
@@ -15,9 +17,13 @@ class Plugin:
     namespace: str
     steps: List[Step]
     artifacts: List[ArtifactSpec]
+    checks: List[Check]
+
+    def specs(self) -> Sequence[Spec]:
+        return self.steps + self.artifacts + self.checks
 
 
-def load_plugin(module: str):
+def load_plugin(module: str) -> Plugin:
     """Loads a plugin that exposes step and artifact specs in a submodule
     `register`.
 
@@ -26,8 +32,13 @@ def load_plugin(module: str):
     """
     register = import_module(f"{module}.register")
 
+    steps = getattr(register, "steps", lambda: [])()
+    artifacts = getattr(register, "artifacts", lambda: [])()
+    checks = getattr(register, "checks", lambda: [])()
+
     return Plugin(
         namespace=register.namespace(),
-        steps=register.steps(),
-        artifacts=register.artifacts(),
+        steps=steps,
+        artifacts=artifacts,
+        checks=checks,
     )

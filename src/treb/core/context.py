@@ -40,19 +40,12 @@ def load_context(config: Config, revision: str) -> Context:
     for plugin_path in config.plugins:
         plugin = load_plugin(plugin_path)
 
-        for artifact in plugin.artifacts:
-            name = artifact.spec_name()
+        for spec in plugin.specs():
+            name = spec.spec_name()
             if name in specs:
                 raise ValueError(f"spec with name {name} is already present")
 
-            specs[name] = artifact
-
-        for step in plugin.steps:
-            name = step.spec_name()
-            if name in specs:
-                raise ValueError(f"spec with name {name} is already present")
-
-            specs[name] = step
+            specs[name] = spec
 
     return Context(
         config=config,
