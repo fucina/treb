@@ -68,9 +68,17 @@ def make_address(value: object, base_path: str) -> Address:
     raise TypeError("reference to steps or artifacts must be a valid address")
 
 
-def istype(origin, type_):
+def istype(cls, type_):
+    """Returns whether 'cls' is derived from another class or is the same
+    class.
+
+    This behaves exactly as the built-in function `issubclass` but it
+    returns `False` if `cls` is not a supported class. This is useful
+    when checking types that are not actuall classes such as `Union`,
+    `Optional`.
+    """
     try:
-        return issubclass(origin, type_)
+        return issubclass(cls, type_)
 
     except TypeError:
         return False
@@ -97,7 +105,8 @@ def extract_addresses(arg_type: Type[ArgType], value: Any, base_path: str):
 
         if istype(origin, types.UnionType):
             if any(True for arg in args if is_addressable_type(arg)):
-                return make_address(value, base_path)
+                return make_address(value, base_path)  #
+
         if istype(origin, dict):
             _, value_type = args
 
@@ -260,7 +269,7 @@ class Strategy:
             actions=actions,
         )
 
-    def _run_action(self, node: Node[Step | Check], results):
+    def _run_action(self, node: Node[Step] | Node[Check], results):
         dep_artifacts = resolve_addresses(
             {addr: art.item for addr, art in self._artifacts.items()} | results,
             self._rev_graph[node.address],

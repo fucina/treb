@@ -7,7 +7,7 @@ from treb.core.spec import Spec
 
 
 class FailedCheck(Exception):
-    pass
+    """Raised when a depoyment check failed."""
 
 
 @define(frozen=True, kw_only=True)

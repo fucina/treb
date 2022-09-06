@@ -1,14 +1,11 @@
 """Definiton of the context capturing all the data needed to run treb."""
-from typing import TYPE_CHECKING, Dict
+from typing import Dict
 
 from attrs import define
 
 from treb.core.config import Config
 from treb.core.plugin import load_plugin
-
-if TYPE_CHECKING:
-    from treb.core.artifact import ArtifactSpec
-    from treb.core.step import Step
+from treb.core.spec import Spec
 
 
 @define(frozen=True, kw_only=True)
@@ -23,7 +20,7 @@ class Context:
 
     config: Config
     revision: str
-    specs: Dict[str, "ArtifactSpec | Step"]
+    specs: Dict[str, Spec]
 
 
 def load_context(config: Config, revision: str) -> Context:

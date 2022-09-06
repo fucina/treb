@@ -15,12 +15,14 @@ class CloudRunServiceArtifact(Artifact):
     uri: str
 
     def latest_uri(self) -> str:
+        """Creates the URI for the app serving from the target revision."""
         uri = urlparse(self.uri)
         uri = uri._replace(netloc=f"latest---{uri.netloc}")
 
         return urlunparse(uri)
 
     def previous_uri(self) -> str:
+        """Creates the URI for the app serving from the previous revision."""
         uri = urlparse(self.uri)
         uri = uri._replace(netloc=f"previous---{uri.netloc}")
 

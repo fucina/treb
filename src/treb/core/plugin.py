@@ -1,6 +1,6 @@
 """Helpers used to add step and artifact specs to treb."""
 from importlib import import_module
-from typing import List, Sequence
+from typing import List, cast
 
 from attrs import define
 
@@ -19,8 +19,13 @@ class Plugin:
     artifacts: List[ArtifactSpec]
     checks: List[Check]
 
-    def specs(self) -> Sequence[Spec]:
-        return self.steps + self.artifacts + self.checks
+    def specs(self) -> List[Spec]:
+        """Gets all the spec defined in this plug-in."""
+        steps: List[Spec] = cast(List[Spec], self.steps)
+        artifacts: List[Spec] = cast(List[Spec], self.artifacts)
+        checks: List[Spec] = cast(List[Spec], self.checks)
+
+        return steps + artifacts + checks
 
 
 def load_plugin(module: str) -> Plugin:
@@ -32,9 +37,11 @@ def load_plugin(module: str) -> Plugin:
     """
     register = import_module(f"{module}.register")
 
-    steps = getattr(register, "steps", lambda: [])()
-    artifacts = getattr(register, "artifacts", lambda: [])()
-    checks = getattr(register, "checks", lambda: [])()
+    steps: List[Step] = cast(List[Step], getattr(register, "steps", lambda: [])())
+    artifacts: List[ArtifactSpec] = cast(
+        List[ArtifactSpec], getattr(register, "artifacts", lambda: [])()
+    )
+    checks: List[Check] = cast(List[Check], getattr(register, "checks", lambda: [])())
 
     return Plugin(
         namespace=register.namespace(),
