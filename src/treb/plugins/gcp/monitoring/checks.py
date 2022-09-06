@@ -46,12 +46,37 @@ class UptimeCheck(Check):
     period: int = 60
     wait_for: int = 5
     healthy_percent: float = 0.9
+    reuse: bool = True
 
     @classmethod
     def spec_name(cls) -> str:
         return "gcp_uptime_check"
 
+    def parent(self) -> str:
+        """Constructs the full project path for this Uptime Check."""
+        return UPTIME_CLIENT.common_project_path(self.project)
+
     def _setup(self):
+        display_name = f"[treb] uptime check service={self.service.service_name}"
+
+        config = monitoring_v3.UptimeCheckConfig()
+        is_new = True
+        if self.reuse:
+            request = monitoring_v3.ListUptimeCheckConfigsRequest(
+                parent=self.parent(),
+            )
+            page_result = UPTIME_CLIENT.list_uptime_check_configs(request=request)
+
+            for uptime_config in page_result:
+                if uptime_config.display_name == display_name:
+                    config = uptime_config
+                    is_new = False
+                    log(f"found existing uptime check {config.name}")
+                    break
+
+            else:
+                log("creating a new uptime config")
+
         uri = urlparse(self.service.latest_uri())
 
         is_https = uri.scheme == "https"
@@ -59,8 +84,7 @@ class UptimeCheck(Check):
         if port is None:
             port = 443 if is_https else 80
 
-        config = monitoring_v3.UptimeCheckConfig()
-        config.display_name = f"[treb] Uptime check for {self.service.service_name}"
+        config.display_name = display_name
         config.monitored_resource = {
             "type": "uptime_url",
             "labels": {"host": uri.hostname},
@@ -87,12 +111,20 @@ class UptimeCheck(Check):
         config.timeout = {"seconds": self.timeout}
         config.period = {"seconds": self.period}
 
-        new_config = UPTIME_CLIENT.create_uptime_check_config(
-            request={
-                "parent": UPTIME_CLIENT.common_project_path(self.project),
-                "uptime_check_config": config,
-            }
-        )
+        if is_new:
+            new_config = UPTIME_CLIENT.create_uptime_check_config(
+                request={
+                    "parent": self.parent(),
+                    "uptime_check_config": config,
+                }
+            )
+
+        else:
+            new_config = UPTIME_CLIENT.update_uptime_check_config(
+                request={
+                    "uptime_check_config": config,
+                }
+            )
 
         return new_config
 
@@ -161,15 +193,12 @@ class UptimeCheck(Check):
                 log("passed uptime check")
 
         finally:
-            with print_waiting("tearing down uptime check"):
-                _teardown(config.name)
+            if not self.reuse:
+                with print_waiting("tearing down uptime check"):
+                    request = monitoring_v3.DeleteUptimeCheckConfigRequest(
+                        name=config.name,
+                    )
+
+                    UPTIME_CLIENT.delete_uptime_check_config(request=request)
 
         return self.service
-
-
-def _teardown(name):
-    request = monitoring_v3.DeleteUptimeCheckConfigRequest(
-        name=name,
-    )
-
-    UPTIME_CLIENT.delete_uptime_check_config(request=request)
