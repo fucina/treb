@@ -277,10 +277,12 @@ class Strategy:
 
         item = evolve(node.item, **dep_artifacts)
 
+        res = None
+
         if isinstance(item, Step):
             with print_waiting(f"step {node.address}"):
                 res = item.run(self._ctx)
-                log(f"step completed {node.address}")
+                success(f"step completed address={node.address}")
 
         elif isinstance(item, Check):
             try:
@@ -288,10 +290,10 @@ class Strategy:
                     res = item.check(self._ctx)
 
             except FailedCheck:
-                error(f"check failed {node.address}")
+                error(f"check failed address={node.address}")
 
             else:
-                success(f"check passed {node.address}")
+                success(f"check passed address={node.address}")
 
         else:
             raise TypeError(f"invalid node type {item.__class__.__name__}")

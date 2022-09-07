@@ -44,7 +44,7 @@ def error(message):
         message: error message to print.
     """
     CONSOLE.log(
-        escape(message),
+        f":x: {escape(message)}",
         style=Style(
             color="red",
         ),
@@ -59,7 +59,7 @@ def success(message):
         message: success message to print.
     """
     CONSOLE.log(
-        escape(message),
+        f":white_check_mark: {escape(message)}",
         style=Style(
             color="green",
         ),
