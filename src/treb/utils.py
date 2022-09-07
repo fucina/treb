@@ -3,6 +3,7 @@ import contextlib
 
 from rich.console import Console
 from rich.markup import escape
+from rich.style import Style
 
 CONSOLE = Console()
 
@@ -33,6 +34,36 @@ def log(message):
         message: informational message to print.
     """
     CONSOLE.log(escape(message))
+
+
+def error(message):
+    """Prints an error message with contextual information similarly to
+    `log()`.
+
+    Arguments:
+        message: error message to print.
+    """
+    CONSOLE.log(
+        escape(message),
+        style=Style(
+            color="red",
+        ),
+    )
+
+
+def success(message):
+    """Prints a success message with contextual information similarly to
+    `log()`.
+
+    Arguments:
+        message: success message to print.
+    """
+    CONSOLE.log(
+        escape(message),
+        style=Style(
+            color="green",
+        ),
+    )
 
 
 _STATUS = None

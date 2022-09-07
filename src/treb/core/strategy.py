@@ -11,12 +11,12 @@ from cattrs import structure, unstructure
 
 from treb.core.address import Address
 from treb.core.artifact import Artifact, ArtifactSpec
-from treb.core.check import Check
+from treb.core.check import Check, FailedCheck
 from treb.core.context import Context
 from treb.core.deploy import Vars, discover_deploy_files
 from treb.core.plan import Action, ActionState, Plan
 from treb.core.step import Step
-from treb.utils import log
+from treb.utils import error, log, print_waiting, success
 
 ItemType = TypeVar("ItemType", ArtifactSpec, Step, Check)
 
@@ -278,10 +278,20 @@ class Strategy:
         item = evolve(node.item, **dep_artifacts)
 
         if isinstance(item, Step):
-            res = item.run(self._ctx)
+            with print_waiting(f"step {node.address}"):
+                res = item.run(self._ctx)
+                log(f"step completed {node.address}")
 
         elif isinstance(item, Check):
-            res = item.check(self._ctx)
+            try:
+                with print_waiting(f"check {node.address}"):
+                    res = item.check(self._ctx)
+
+            except FailedCheck:
+                error(f"check failed {node.address}")
+
+            else:
+                success(f"check passed {node.address}")
 
         else:
             raise TypeError(f"invalid node type {item.__class__.__name__}")
