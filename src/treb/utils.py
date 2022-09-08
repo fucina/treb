@@ -51,6 +51,21 @@ def error(message):
     )
 
 
+def rollback(message):
+    """Prints a rollbaack message with contextual information similarly to
+    `log()`.
+
+    Arguments:
+        message: rollback message to print.
+    """
+    CONSOLE.log(
+        f":rewind: {escape(message)}",
+        style=Style(
+            color="blue",
+        ),
+    )
+
+
 def success(message):
     """Prints a success message with contextual information similarly to
     `log()`.

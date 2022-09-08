@@ -16,7 +16,7 @@ from treb.core.context import Context
 from treb.core.deploy import Vars, discover_deploy_files
 from treb.core.plan import Action, ActionState, Plan
 from treb.core.step import Step
-from treb.utils import error, log, print_waiting, success
+from treb.utils import error, print_waiting, rollback, success
 
 ItemType = TypeVar("ItemType", ArtifactSpec, Step, Check)
 
@@ -291,6 +291,7 @@ class Strategy:
 
             except FailedCheck:
                 error(f"check failed address={node.address}")
+                raise
 
             else:
                 success(f"check passed address={node.address}")
@@ -300,9 +301,20 @@ class Strategy:
 
         return res
 
-    def _rollback_action(self, step_node: Node[Step]):
-        log(f"rolling back action {step_node.address}")
-        step_node.item.rollback(self._ctx)
+    def _rollback_action(self, node: Node[Step], results):
+        with print_waiting(f"rollback {node.address}"):
+            if isinstance(node.item, Step):
+                dep_artifacts = resolve_addresses(
+                    {addr: art.item for addr, art in self._artifacts.items()} | results,
+                    self._rev_graph[node.address],
+                )
+
+                item = evolve(node.item, **dep_artifacts)
+                item.rollback(self._ctx)
+
+            rollback(
+                f"rolled back address={node.address}",
+            )
 
     def execute(self, plan: Plan) -> Iterable[Plan]:
         """Executes a plan performing each action sequentially and yielding a
@@ -318,26 +330,61 @@ class Strategy:
         """
         results: Dict[str, Any] = {}
 
-        for idx, action in enumerate(plan.actions):
+        idx = 0
+
+        while True:
+            if idx >= len(plan.actions):
+                break
+
+            action = plan.actions[idx]
             step_node = self._steps[action.address]
 
             match action.state:
                 case ActionState.NOT_STARTED | ActionState.IN_PROGRESS:
-                    res = self._run_action(step_node, results)
-
-                    results[step_node.address] = res
-
                     new_actions = copy.deepcopy(plan.actions)
-                    new_actions[idx] = evolve(
-                        action, state=ActionState.DONE, result=unstructure(res)
-                    )
 
+                    start_rollback = False
+
+                    try:
+                        res = self._run_action(step_node, results)
+
+                        results[step_node.address] = res
+
+                        new_action = evolve(action, state=ActionState.DONE, result=unstructure(res))
+
+                    except FailedCheck:
+                        new_action = evolve(
+                            action, state=ActionState.FAILED, result=unstructure(res)
+                        )
+                        start_rollback = True
+
+                    except Exception:  # pylint: disable=broad-except
+                        new_action = evolve(
+                            action, state=ActionState.ERRORED, result=unstructure(res)
+                        )
+                        start_rollback = True
+
+                    new_actions[idx] = new_action
                     plan = evolve(plan, actions=new_actions)
 
                     yield plan
 
+                    if start_rollback:
+                        done_actions = copy.deepcopy(plan.actions)[: idx + 1]
+                        rollback_actions = []
+                        for rollback_action in reversed(done_actions):
+                            rollback_action = evolve(
+                                rollback_action,
+                                state=ActionState.ROLLING_BACK,
+                            )
+                            rollback_actions.append(rollback_action)
+
+                        plan = evolve(plan, actions=done_actions + rollback_actions)
+
+                        yield plan
+
                 case ActionState.ERRORED | ActionState.ROLLING_BACK:
-                    self._rollback_action(step_node)
+                    self._rollback_action(step_node, results)
 
                     new_actions = copy.deepcopy(plan.actions)
                     new_actions[idx] = evolve(action, state=ActionState.FAILED)
@@ -357,6 +404,8 @@ class Strategy:
 
                 case _:
                     raise ValueError("invalid plan")
+
+            idx += 1
 
 
 def prepare_strategy(ctx: Context) -> Strategy:
