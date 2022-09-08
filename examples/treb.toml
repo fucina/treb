@@ -12,3 +12,4 @@ repo_path = "./state/"
 [vars]
 gh_repo = "ghcr.io/fucina"
 gcp_repo = "europe-west2-docker.pkg.dev/<project-id>/fucina"
+gcp_project = "<project-id>"

@@ -1,0 +1,46 @@
+# replace the current service's image with a newer one and then
+# roll out the new image to 5%/10%/100% of the traffic checking the Uptime
+# after each stage
+gcp_cloudrun_service(
+    name="api-rollout",
+    service_name=f"projects/{var.gcp_project}/locations/{var.gcp_location}/services/treb-api-rollout"
+)
+
+gcp_cloudrun_deploy(
+    name="rollout-5",
+    service=":api-rollout",
+    image="//examples/docker_mirror:push-gcp-api",
+    traffic_percent=5,
+)
+
+gcp_uptime_check(
+    name="check-5",
+    service=":rollout-5",
+    project=var.gcp_project,
+)
+
+gcp_cloudrun_deploy(
+    name="rollout-10",
+    service=":check-5",
+    image="//examples/docker_mirror:push-gcp-api",
+    traffic_percent=10,
+)
+
+gcp_uptime_check(
+    name="check-10",
+    service=":rollout-10",
+    project=var.gcp_project,
+)
+
+gcp_cloudrun_deploy(
+    name="rollout-full",
+    service=":check-10",
+    image="//examples/docker_mirror:push-gcp-api",
+    traffic_percent=100,
+)
+
+gcp_uptime_check(
+    name="check-full",
+    service=":rollout-full",
+    project=var.gcp_project,
+)
