@@ -270,6 +270,16 @@ class Strategy:
                 if res is None:
                     continue
 
+                after = [
+                    Address.from_string(step_node.address.base, address)
+                    for address in step_node.item.after
+                ]
+                all_after_resolved = all(
+                    (address in artifacts or address in resources) for address in after
+                )
+                if not all_after_resolved:
+                    continue
+
                 actions.append(
                     Action(
                         address=step_node.address,

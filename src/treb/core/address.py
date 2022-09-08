@@ -59,7 +59,7 @@ class Address:
             base, _, name = addr[2:].rpartition(":")
 
         else:
-            raise ValueError("invalid address format")
+            raise ValueError(f"invalid address format {addr}")
 
         return cls(
             base=base,

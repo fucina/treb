@@ -3,7 +3,6 @@ import time
 
 from attrs import define
 
-from treb.core.artifact import Artifact
 from treb.core.context import Context
 from treb.core.step import Step
 from treb.utils import log, print_waiting
@@ -22,16 +21,13 @@ class Wait(Step):
     def spec_name(cls) -> str:
         return "wait"
 
-    artifact: Artifact
     duration: float
 
-    def run(self, ctx: Context) -> Artifact:
+    def run(self, ctx: Context):
         with print_waiting(f"waiting for {self.duration} seconds"):
             time.sleep(self.duration)
 
         log(f"waited for {self.duration} seconds")
 
-        return self.artifact
-
-    def rollback(self, ctx):
+    def rollback(self, ctx: Context):
         pass
