@@ -6,6 +6,7 @@ from attrs import define
 
 from treb.core.artifact import ArtifactSpec
 from treb.core.check import Check
+from treb.core.resource import ResourceSpec
 from treb.core.spec import Spec
 from treb.core.step import Step
 
@@ -17,15 +18,17 @@ class Plugin:
     namespace: str
     steps: List[Step]
     artifacts: List[ArtifactSpec]
+    resources: List[ResourceSpec]
     checks: List[Check]
 
     def specs(self) -> List[Spec]:
         """Gets all the spec defined in this plug-in."""
-        steps: List[Spec] = cast(List[Spec], self.steps)
         artifacts: List[Spec] = cast(List[Spec], self.artifacts)
         checks: List[Spec] = cast(List[Spec], self.checks)
+        resources: List[Spec] = cast(List[Spec], self.resources)
+        steps: List[Spec] = cast(List[Spec], self.steps)
 
-        return steps + artifacts + checks
+        return artifacts + checks + resources + steps
 
 
 def load_plugin(module: str) -> Plugin:
@@ -42,10 +45,14 @@ def load_plugin(module: str) -> Plugin:
         List[ArtifactSpec], getattr(register, "artifacts", lambda: [])()
     )
     checks: List[Check] = cast(List[Check], getattr(register, "checks", lambda: [])())
+    resources: List[ResourceSpec] = cast(
+        List[ResourceSpec], getattr(register, "resources", lambda: [])()
+    )
 
     return Plugin(
         namespace=register.namespace(),
-        steps=steps,
         artifacts=artifacts,
         checks=checks,
+        resources=resources,
+        steps=steps,
     )

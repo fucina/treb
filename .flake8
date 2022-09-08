@@ -2,7 +2,11 @@
 max-line-length = 100
 
 ignore =
-    # Rule: Whitespace before ':'
+    # Rules:
     #
-    # No need for this rule because the styling is already handled by Black.
+    # * whitespace before ':'
+    # * line break before binary operator
+    #
+    # No need for these rules because the styling is already handled by Black.
     E203
+    W503

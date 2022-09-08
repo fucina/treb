@@ -3,11 +3,11 @@ from urllib.parse import urlparse, urlunparse
 
 from attrs import define
 
-from treb.core.artifact import Artifact, ArtifactSpec
+from treb.core.resource import Resource, ResourceSpec
 
 
 @define(frozen=True, kw_only=True)
-class CloudRunServiceArtifact(Artifact):
+class CloudRunService(Resource):
     """An artifact representing a Cloud Run Service on GCP."""
 
     service_name: str
@@ -30,7 +30,7 @@ class CloudRunServiceArtifact(Artifact):
 
 
 @define(frozen=True, kw_only=True)
-class CloudRunServiceSpec(ArtifactSpec):
+class CloudRunServiceSpec(ResourceSpec):
     """An artifact spec used to reference a Cloud Run Service on GCP.
 
     Arguments:

@@ -8,7 +8,7 @@ from attrs import define
 from google.cloud import monitoring_v3
 
 from treb.core.check import Check, FailedCheck
-from treb.plugins.gcp.cloudrun.artifacts import CloudRunServiceArtifact
+from treb.plugins.gcp.cloudrun.resources import CloudRunService
 from treb.utils import log, print_waiting
 
 UPTIME_CLIENT = monitoring_v3.UptimeCheckServiceClient()
@@ -74,7 +74,7 @@ class UptimeCheck(Check):
             mark the check as passed.
     """
 
-    service: CloudRunServiceArtifact
+    service: CloudRunService
     project: str
 
     method: str = "GET"
@@ -220,7 +220,7 @@ class UptimeCheck(Check):
             datapoints=datapoints,
         )
 
-    def check(self, ctx) -> CloudRunServiceArtifact:
+    def check(self, ctx) -> CloudRunService:
         with print_waiting("setting up uptime check"):
             config = self._setup()
 

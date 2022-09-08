@@ -15,10 +15,11 @@ from treb.core.check import Check, FailedCheck
 from treb.core.context import Context
 from treb.core.deploy import Vars, discover_deploy_files
 from treb.core.plan import Action, ActionState, Plan
+from treb.core.resource import Resource, ResourceSpec
 from treb.core.step import Step
-from treb.utils import error, print_waiting, rollback, success
+from treb.utils import error, print_exception, print_waiting, rollback, success
 
-ItemType = TypeVar("ItemType", ArtifactSpec, Step, Check)
+ItemType = TypeVar("ItemType", ArtifactSpec, Step, Check, ResourceSpec)
 
 
 @define(frozen=True, kw_only=True)
@@ -43,7 +44,7 @@ def is_addressable_type(type_) -> bool:
     Returns:
         True if it can be used to instantiate a node. Otherwise false.
     """
-    return istype(type_, (Artifact, ArtifactSpec, Step))
+    return istype(type_, (Artifact, ArtifactSpec, Resource, ResourceSpec, Step))
 
 
 def make_address(value: object, base_path: str) -> Address:
@@ -170,6 +171,7 @@ class Strategy:
         self._ctx = ctx
         self._steps = {}
         self._artifacts = {}
+        self._resources = {}
         self._rev_graph = defaultdict(dict)
 
     def register_artifact(self, path: str, artifact: ArtifactSpec):
@@ -184,6 +186,19 @@ class Strategy:
             item=artifact,
         )
         self._artifacts[node.address] = node
+
+    def register_resource(self, path: str, resource: ResourceSpec):
+        """Adds a resource to the deploy strategy.
+
+        Arguments:
+            path: the base path to the resource definition.
+            resource: the resource spec to add.
+        """
+        node = Node[ResourceSpec](
+            address=Address(base=path, name=resource.name),
+            item=resource,
+        )
+        self._resources[node.address] = node
 
     def register_step(self, path: str, step: Step):
         """Adds a step to the deploy strategy.
@@ -235,6 +250,7 @@ class Strategy:
         """Generates a new plan for the deployment strategy."""
         steps = copy.deepcopy(self._steps)
         artifacts = copy.deepcopy(self._artifacts)
+        resources = copy.deepcopy(self._resources)
 
         if not artifacts:
             raise ValueError("no artifacts defined")
@@ -246,7 +262,8 @@ class Strategy:
                 dep_addresses = self._rev_graph[step_node.address]
 
                 res = resolve_addresses(
-                    {addr: art.item for addr, art in artifacts.items()},
+                    {addr: art.item for addr, art in artifacts.items()}
+                    | {addr: resource.item for addr, resource in resources.items()},
                     dep_addresses,
                 )
 
@@ -271,7 +288,9 @@ class Strategy:
 
     def _run_action(self, node: Node[Step] | Node[Check], results):
         dep_artifacts = resolve_addresses(
-            {addr: art.item for addr, art in self._artifacts.items()} | results,
+            {addr: art.item for addr, art in self._artifacts.items()}
+            | {addr: resource.item for addr, resource in self._resources.items()}
+            | results,
             self._rev_graph[node.address],
         )
 
@@ -353,16 +372,15 @@ class Strategy:
                         new_action = evolve(action, state=ActionState.DONE, result=unstructure(res))
 
                     except FailedCheck:
-                        new_action = evolve(
-                            action, state=ActionState.FAILED, result=unstructure(res)
-                        )
+                        new_action = evolve(action, state=ActionState.FAILED, result=None)
                         start_rollback = True
 
                     except Exception:  # pylint: disable=broad-except
-                        new_action = evolve(
-                            action, state=ActionState.ERRORED, result=unstructure(res)
-                        )
+                        new_action = evolve(action, state=ActionState.ERRORED, result=None)
                         start_rollback = True
+                        print_exception(
+                            f"exception raise when running the action {step_node.address}"
+                        )
 
                     new_actions[idx] = new_action
                     plan = evolve(plan, actions=new_actions)
@@ -431,6 +449,9 @@ def prepare_strategy(ctx: Context) -> Strategy:
 
             elif issubclass(cls, Check):
                 strategy.register_check(base, item)
+
+            elif issubclass(cls, ResourceSpec):
+                strategy.register_resource(base, item)
 
             else:
                 raise TypeError(f"cannot register item of type {cls.__name__}")

@@ -9,7 +9,7 @@ from google.cloud import run_v2
 from treb.core.context import Context
 from treb.core.step import Step
 from treb.plugins.docker.artifacts import DockerImageArtifact
-from treb.plugins.gcp.cloudrun.artifacts import CloudRunServiceArtifact, CloudRunServiceSpec
+from treb.plugins.gcp.cloudrun.resources import CloudRunService, CloudRunServiceSpec
 from treb.utils import log, print_waiting
 
 CLIENT = run_v2.ServicesClient()
@@ -127,11 +127,11 @@ class CloudRunDeploy(Step):
     def spec_name(cls) -> str:
         return "gcp_cloudrun_deploy"
 
-    service: CloudRunServiceSpec | CloudRunServiceArtifact
+    service: CloudRunServiceSpec | CloudRunService
     image: DockerImageArtifact
     traffic_percent: int = 100
 
-    def run(self, ctx: Context) -> CloudRunServiceArtifact:
+    def run(self, ctx: Context) -> CloudRunService:
         request = run_v2.GetServiceRequest(
             name=self.service.service_name,
         )
@@ -153,7 +153,7 @@ class CloudRunDeploy(Step):
                 **encode_annotations(annotations),
             }
 
-        elif isinstance(self.service, CloudRunServiceArtifact):
+        elif isinstance(self.service, CloudRunService):
             annotations = load_annotations(service.annotations)
 
             prev_revision_id = annotations.previous_revision_id
@@ -189,7 +189,7 @@ class CloudRunDeploy(Step):
 
             log(f"created a new service revision {revision_id}")
 
-        return CloudRunServiceArtifact(
+        return CloudRunService(
             service_name=self.service.service_name,
             revision_id=service.template.revision,
             uri=service.uri,
