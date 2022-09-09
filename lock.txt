@@ -19,6 +19,7 @@
 //     "google-cloud-run<0.4.0,>=0.3.0",
 //     "rich<13.0.0,>=12.5.1",
 //     "setuptools<66.0.0,>=65.3.0",
+//     "testfixtures<8.0.0,>=7.0.0",
 //     "toml<0.11.0,>=0.10.2",
 //     "types-toml<0.11.0,>=0.10.8"
 //   ]
@@ -128,19 +129,19 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "fe86415d55e84719d75f8b69414f6438ac3547d2078ab91b67e779ef69378412",
-              "url": "https://files.pythonhosted.org/packages/e9/06/d3d367b7af6305b16f0d28ae2aaeb86154fa91f144f036c2d5002a5a202b/certifi-2022.6.15-py3-none-any.whl"
+              "hash": "43dadad18a7f168740e66944e4fa82c6611848ff9056ad910f8f7a3e46ab89e0",
+              "url": "https://files.pythonhosted.org/packages/ac/80/e0df41f336f21d35befa4ff15348eb3e8b2483e131922e8427223b52e688/certifi-2022.6.15.1-py3-none-any.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "84c85a9078b11105f04f3036a9482ae10e4621616db313fe045dd24743a0820d",
-              "url": "https://files.pythonhosted.org/packages/cc/85/319a8a684e8ac6d87a1193090e06b6bbb302717496380e225ee10487c888/certifi-2022.6.15.tar.gz"
+              "hash": "cffdcd380919da6137f76633531a5817e3a9f268575c128249fb637e4f9e73fb",
+              "url": "https://files.pythonhosted.org/packages/90/c2/4e37394b66e7211ad120f216fc2e8b38d4f43b89c8100dd3917c9da9bfc6/certifi-2022.6.15.1.tar.gz"
             }
           ],
           "project_name": "certifi",
           "requires_dists": [],
           "requires_python": ">=3.6",
-          "version": "2022.6.15"
+          "version": "2022.6.15.1"
         },
         {
           "artifacts": [
@@ -252,41 +253,45 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "6e02babb44bdad17b6c9c50b4f9df42f6e511e3a51555ac07dd85ec904efe0b1",
-              "url": "https://files.pythonhosted.org/packages/b6/40/2d5d017a8d30925f21207329bef9b68a8c53b52af173f61a221734439853/dulwich-0.20.45-cp310-cp310-win_amd64.whl"
+              "hash": "42fa5a68908556eb6c40f231a67caf6a4660588aad707a9d6b334fa1d8f04bf7",
+              "url": "https://files.pythonhosted.org/packages/7e/d0/7572bb855e8d3db97f2140c002acedb830386b25a24aba734ff8682e0902/dulwich-0.20.46-cp310-cp310-win_amd64.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "2d7cf5171034d9d61b928bd5f9c509000e895d1ba29bd6ea850b9e4f93fca0f7",
-              "url": "https://files.pythonhosted.org/packages/0c/a9/168badd89e3de1b4662d56f73d7f5512daa54d8a65aa121d769e2bd64b89/dulwich-0.20.45-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl"
+              "hash": "6676196e9cf377cde62aa2f5d741e93207437343e0c62368bd0d784c322a3c49",
+              "url": "https://files.pythonhosted.org/packages/09/1d/82891bf79500e2c083142fee19f07620f7a274a1a407c0082ded0aca8d65/dulwich-0.20.46-cp310-cp310-macosx_10_15_x86_64.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "9b689b05bc7baa5cb20ebff54291085b598a9bdf7caeab23daf93b46421d96ff",
-              "url": "https://files.pythonhosted.org/packages/5b/e8/35d7b5739f904aa06fc2e588a52f4651251d252112429d88b4923a0a9340/dulwich-0.20.45-cp310-cp310-macosx_10_15_universal2.whl"
+              "hash": "4f0e88ffff5db1523d93d92f1525fe5fa161318ffbaad502c1b9b3be7a067172",
+              "url": "https://files.pythonhosted.org/packages/4c/61/85f17dd9e744e027d23bee2bbafc8438fab26c175a089b1a06b664deae21/dulwich-0.20.46.tar.gz"
             },
             {
               "algorithm": "sha256",
-              "hash": "22d433ba9c776f2b0e19b1186e01e25ca286175e20f4ac422141db94eeaac08b",
-              "url": "https://files.pythonhosted.org/packages/6e/27/180643ddeaef02f115ab853477450d021861ac3b277482164a98d8488edb/dulwich-0.20.45-cp310-cp310-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_12_x86_64.manylinux2010_x86_64.whl"
+              "hash": "de22a54f68c6c4e97f9b924abd46da4618536d7934b9849066be9fc5cd31205d",
+              "url": "https://files.pythonhosted.org/packages/69/a2/8c1b96f0bd2ebe20cb44d07905d12fe2c22b7480a5cb573defbf5aea58d3/dulwich-0.20.46-cp310-cp310-win32.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "70710dd9ca2a442190c7e506892db074c318ac762e221f7529b8ce34802041b7",
-              "url": "https://files.pythonhosted.org/packages/8e/99/7f139ec0e9d224542115ef070c79503bcb271edaaf0c1e049a5fbdaad6a5/dulwich-0.20.45.tar.gz"
+              "hash": "769442c9657b10fc35ac625beeaf440540c9288c96fcfaba3e58adf745c5cafd",
+              "url": "https://files.pythonhosted.org/packages/9b/92/4cac485e83bd4d49d3802d7d3b7e8096d48614b5975452ec6a2e43da3d64/dulwich-0.20.46-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl"
+            },
+            {
+              "algorithm": "sha256",
+              "hash": "0a1ca555a3eafe7388d6cb81bb08f34608a1592500f0bd4c26734c91d208a546",
+              "url": "https://files.pythonhosted.org/packages/c3/64/09a71a454e90798f38ebbcc2ff384beebe324ec05fd472c659f083200b41/dulwich-0.20.46-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl"
             }
           ],
           "project_name": "dulwich",
           "requires_dists": [
-            "certifi",
             "fastimport; extra == \"fastimport\"",
             "gpg; extra == \"pgp\"",
             "paramiko; extra == \"paramiko\"",
-            "urllib3>=1.24.1",
-            "urllib3[secure]>=1.24.1; extra == \"https\""
+            "urllib3>=1.24.1; extra == \"https\"",
+            "urllib3>=1.25"
           ],
           "requires_python": ">=3.6",
-          "version": "0.20.45"
+          "version": "0.20.46"
         },
         {
           "artifacts": [
@@ -1031,6 +1036,42 @@
           "artifacts": [
             {
               "algorithm": "sha256",
+              "hash": "ae95a0522f181686204fc816e817c4725516cf5bc43360160390aad54b1dfd00",
+              "url": "https://files.pythonhosted.org/packages/0c/24/c43e6db71ddf2b1f7e3d7a1b497e591ce3c50c890827b2011171b54af04e/testfixtures-7.0.0-py3-none-any.whl"
+            },
+            {
+              "algorithm": "sha256",
+              "hash": "8ecac5a308793451640594d9ca42ce89b987711e1e4c9312855321ec21f6ccb4",
+              "url": "https://files.pythonhosted.org/packages/0a/37/05d0415d241201e934c92d4d4e6db6907ce4d1a325550f0f56ff4110e789/testfixtures-7.0.0.tar.gz"
+            }
+          ],
+          "project_name": "testfixtures",
+          "requires_dists": [
+            "django; extra == \"docs\"",
+            "django; extra == \"test\"",
+            "furo; extra == \"docs\"",
+            "mypy; extra == \"test\"",
+            "pytest-cov; extra == \"test\"",
+            "pytest-django; extra == \"test\"",
+            "pytest>=3.6; extra == \"test\"",
+            "setuptools-git; extra == \"build\"",
+            "sphinx; extra == \"docs\"",
+            "sybil>=3; extra == \"docs\"",
+            "sybil>=3; extra == \"test\"",
+            "twine; extra == \"build\"",
+            "twisted; extra == \"docs\"",
+            "twisted; extra == \"test\"",
+            "wheel; extra == \"build\"",
+            "zope.component; extra == \"docs\"",
+            "zope.component; extra == \"test\""
+          ],
+          "requires_python": ">=3.6",
+          "version": "7"
+        },
+        {
+          "artifacts": [
+            {
+              "algorithm": "sha256",
               "hash": "806143ae5bfb6a3c6e736a764057db0e6a0e05e338b5630894a5f779cabb4f9b",
               "url": "https://files.pythonhosted.org/packages/44/6f/7120676b6d73228c96e17f1f794d8ab046fc910d781c8d151120c3f1569e/toml-0.10.2-py2.py3-none-any.whl"
             },
@@ -1159,6 +1200,7 @@
     "google-cloud-run<0.4.0,>=0.3.0",
     "rich<13.0.0,>=12.5.1",
     "setuptools<66.0.0,>=65.3.0",
+    "testfixtures<8.0.0,>=7.0.0",
     "toml<0.11.0,>=0.10.2",
     "types-toml<0.11.0,>=0.10.8"
   ],

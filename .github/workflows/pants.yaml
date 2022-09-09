@@ -77,6 +77,9 @@ jobs:
     - name: Test
       run: |
         ./pants test ::
+    - uses: codecov/codecov-action@v3
+      with:
+        files: ./dist/coverage/python/coverage.xml
     - name: Login to GitHub registry
       run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $ --password-stdin
     - name: Package / Run

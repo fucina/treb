@@ -1,5 +1,29 @@
 """Representation of an address for any artifact or step."""
-from attrs import define
+from attrs import define, field
+
+__all__ = ["Address", "is_valid_name"]
+
+
+def is_valid_name(name: str) -> bool:
+    """Checks if the name used in an address is valid.
+
+    Valid name MUST match the following requirements:
+
+    * have at least one character
+    * first character is alphabetic [a-zA-Z]
+    * last character cannot be `-`
+    * any other character can be alphanumeric or `-`
+    """
+    if len(name) == 0:
+        return False
+
+    if not name[0].isalpha():
+        return False
+
+    if name[-1] == "-":
+        return False
+
+    return all((ch.isalnum() or ch == "-") for ch in name)
 
 
 @define(frozen=True, kw_only=True)
@@ -12,17 +36,27 @@ class Address:
             this step/artifact definition.
     """
 
-    base: str
-    name: str
+    base: str = field()
+    name: str = field()
+
+    @base.validator
+    def check_base(self, _, value):  # pylint: disable=no-self-use
+        """Validates the address' base."""
+        for name in value.split("/"):
+            if not is_valid_name(name):
+                raise ValueError(f"invalid address base {value}")
+
+    @name.validator
+    def check_name(self, _, value):  # pylint: disable=no-self-use
+        """Validates the address' name."""
+        if not is_valid_name(value):
+            raise ValueError(f"invalid address name {value}")
 
     def __str__(self):
         return f"//{self.base}:{self.name}"
 
     def __repr__(self):
         return f"Address({self.base!r}, {self.name!r})"
-
-    def _validate(self):
-        pass
 
     def __eq__(self, other: object) -> bool:
         if isinstance(other, Address):

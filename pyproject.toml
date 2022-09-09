@@ -19,6 +19,7 @@ types-toml = "^0.10.8"
 Flask = "^2.2.2"
 setuptools = "^65.3.0"
 google-cloud-monitoring = "^2.11.1"
+testfixtures = "^7.0.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
@@ -30,6 +31,9 @@ line-length = 100
 [tool.isort]
 profile = "black"
 line_length = 100
+
+[tool.pylint.'MASTER']
+ignore-patterns = ".*_test.py$"
 
 [tool.pylint.'MESSAGES CONTROL']
 disable = ["too-few-public-methods"]

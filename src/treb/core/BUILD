@@ -4,3 +4,7 @@ python_sources(
         "//:poetry#cattrs",
     ]
 )
+
+python_tests(
+    name="tests",
+)

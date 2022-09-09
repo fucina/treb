@@ -7,3 +7,9 @@ remote_cache_write = false
 
 [pytest]
 args = ["-vv", "--no-header"]
+
+[test]
+use_coverage = true
+
+[coverage-py]
+report = ["xml", "html", "console"]
