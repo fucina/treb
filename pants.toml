@@ -27,6 +27,10 @@ python-default = "lock.txt"
 version = "mypy==0.971"
 lockfile = "mypy_lockfile.txt"
 
+[coverage-py]
+interpreter_constraints = ["CPython==3.10.*"]
+global_report = true
+
 [docker]
 build_args = ["GIT_COMMIT"]
 

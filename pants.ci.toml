@@ -5,11 +5,11 @@ colors = true
 remote_cache_read = false
 remote_cache_write = false
 
-[pytest]
-args = ["-vv", "--no-header"]
-
 [test]
 use_coverage = true
 
+[pytest]
+args = ["-vv", "--no-header"]
+
 [coverage-py]
-report = ["xml", "html", "console"]
+report = ["xml", "console"]
