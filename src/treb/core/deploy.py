@@ -17,7 +17,7 @@ class Vars(dict):
         if name in self:
             return self[name]
 
-        raise AttributeError("No such attribute: " + name)
+        raise AttributeError(f"no attribute: {name}")
 
 
 @define(frozen=True, kw_only=True)
