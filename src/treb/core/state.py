@@ -12,7 +12,7 @@ from treb.core.context import Context
 from treb.core.plan import Plan
 
 
-def get_base(ctx: Context) -> Path:
+def get_base_path(ctx: Context) -> Path:
     """Gets the path to the state repository.
 
     Arguments:
@@ -27,7 +27,7 @@ def get_base(ctx: Context) -> Path:
     return Path(ctx.config.state.repo_path).joinpath(ctx.config.state.base_path)
 
 
-def get_revisions(ctx: Context) -> Path:
+def get_revisions_path(ctx: Context) -> Path:
     """Gets the path to the directory containing all the revisions.
 
     Arguments:
@@ -36,12 +36,12 @@ def get_revisions(ctx: Context) -> Path:
     Returns:
         Path to the revisions directory.
     """
-    base_path = get_base(ctx)
+    base_path = get_base_path(ctx)
 
     return base_path.joinpath("revisions")
 
 
-def get_revision(ctx: Context) -> Path:
+def get_revision_path(ctx: Context) -> Path:
     """Gets the path to the directory containing the data of a specific
     revision.
 
@@ -51,7 +51,7 @@ def get_revision(ctx: Context) -> Path:
     Returns:
         Path to a revision directory.
     """
-    rev_path = get_revisions(ctx)
+    rev_path = get_revisions_path(ctx)
 
     return rev_path.joinpath(ctx.revision)
 
@@ -62,10 +62,10 @@ def init_state(ctx: Context):
     Arguments:
         ctx: treb's context containing the state configuration.
     """
-    base_path = get_base(ctx)
+    base_path = get_base_path(ctx)
     base_path.mkdir(parents=True, exist_ok=True)
 
-    rev_path = get_revisions(ctx)
+    rev_path = get_revisions_path(ctx)
     rev_path.mkdir(parents=True, exist_ok=True)
 
 
@@ -76,7 +76,7 @@ def init_revision(ctx: Context):
     Arguments:
         ctx: treb's context containing the state configuration.
     """
-    rev_path = get_revision(ctx)
+    rev_path = get_revision_path(ctx)
     rev_path.mkdir(parents=True, exist_ok=True)
 
 
@@ -99,7 +99,7 @@ def save_revision(ctx: Context, plan: Plan):
         path: path of the file where the plan will be stored.
         plan: plan to store.
     """
-    rev_path = get_revision(ctx)
+    rev_path = get_revision_path(ctx)
     state_path = rev_path.joinpath("state.json")
 
     revision = Revision(plan=plan)
@@ -123,7 +123,7 @@ def load_revision(ctx: Context) -> Optional[Revision]:
     Returns:
         The revision state if present. Otherwise, returns `None`.
     """
-    rev_path = get_revision(ctx)
+    rev_path = get_revision_path(ctx)
     state_path = rev_path.joinpath("state.json")
 
     try:

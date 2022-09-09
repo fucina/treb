@@ -48,7 +48,7 @@ class Config:
     project: ProjectConfig
     plugins: List[str] = field(factory=list)
     deploy_filename: str = "DEPLOY"
-    vars: Dict[str, Any]
+    vars: Dict[str, Any] = field(factory=dict)
 
 
 def load_config(path: Path | str) -> Config:

@@ -1,7 +1,7 @@
 """Definiton of the context capturing all the data needed to run treb."""
 from typing import Dict
 
-from attrs import define
+from attrs import define, field
 
 from treb.core.config import Config
 from treb.core.plugin import load_plugin
@@ -20,7 +20,7 @@ class Context:
 
     config: Config
     revision: str
-    specs: Dict[str, Spec]
+    specs: Dict[str, Spec] = field(factory=dict)
 
 
 def load_context(config: Config, revision: str) -> Context:
