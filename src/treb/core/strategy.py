@@ -4,7 +4,7 @@ import inspect
 import os
 import types
 from collections import defaultdict
-from typing import Any, Dict, Generic, Iterable, Mapping, Type, TypeVar, get_args, get_origin
+from typing import Any, Dict, Generic, Iterable, Type, TypeVar, get_args, get_origin
 
 from attrs import define, evolve, fields
 from cattrs import structure, unstructure
@@ -14,7 +14,7 @@ from treb.core.artifact import Artifact, ArtifactSpec
 from treb.core.check import Check, FailedCheck
 from treb.core.context import Context
 from treb.core.deploy import Vars, discover_deploy_files
-from treb.core.plan import Action, ActionState, Plan
+from treb.core.plan import ActionState, Plan, resolve_addresses
 from treb.core.resource import Resource, ResourceSpec
 from treb.core.step import Step
 from treb.utils import error, print_exception, print_waiting, rollback, success
@@ -122,44 +122,6 @@ def extract_addresses(arg_type: Type[ArgType], value: Any, base_path: str):
     return None
 
 
-def resolve_addresses(artifacts: Mapping[str, Artifact], dep_addresses):
-    """Visits the dependency addresses in `dep_address` and creates a
-    dictionary with the same structure but replacing all the addresses with its
-    corresponding artifact using the mapping `artifacts`.
-
-    If any of th addresses cannot be resolved, it will return `None`.
-
-    Arguments:
-        artifacts: contains all the known artifact used for the address resolution.
-        dep_addresses: all the dependency addresses to resolve.
-
-    Returns:
-        A copy of the dictionary with the addresses replaced by the artifacts.
-        `None` if any of the addresses cannot be resolved.
-    """
-    dep_artifacts: Dict[str, Artifact | Dict[str, Artifact]] = {}
-
-    for name, addr in dep_addresses.items():
-        if isinstance(addr, dict):
-            nested_artifacts = {}
-
-            for key, nested_addr in addr.items():
-                if nested_addr in artifacts:
-                    nested_artifacts[key] = artifacts[nested_addr]
-                else:
-                    return None
-
-            dep_artifacts[name] = nested_artifacts
-
-        elif addr in artifacts:
-            dep_artifacts[name] = artifacts[addr]
-
-        else:
-            return None
-
-    return dep_artifacts
-
-
 class Strategy:
     """Describes the deploy strategy for a project.
 
@@ -173,6 +135,25 @@ class Strategy:
         self._artifacts = {}
         self._resources = {}
         self._rev_graph = defaultdict(dict)
+
+    def steps(self) -> Dict[Address, Step]:
+        """Returns a mapping of addresses to all steps defined in the
+        deployment strategy."""
+        return {addr: node.item for addr, node in self._steps.items()}
+
+    def artifacts(self) -> Dict[Address, ArtifactSpec]:
+        """Returns a mapping of addresses to all artifacts defined in the
+        deployment strategy."""
+        return {addr: node.item for addr, node in self._artifacts.items()}
+
+    def resources(self) -> Dict[Address, ResourceSpec]:
+        """Returns a mapping of addresses to all resources defined in the
+        deployment strategy."""
+        return {addr: node.item for addr, node in self._resources.items()}
+
+    def dependencies(self, address):
+        """Returns all the dependencies of the given address."""
+        return copy.deepcopy(self._rev_graph[address])
 
     def register_artifact(self, path: str, artifact: ArtifactSpec):
         """Adds an artifact to the deploy strategy.
@@ -245,56 +226,6 @@ class Strategy:
             addresses = extract_addresses(field.type, value, path)
             if addresses is not None:
                 self._rev_graph[node.address][field.name] = addresses
-
-    def plan(self) -> Plan:
-        """Generates a new plan for the deployment strategy."""
-        steps = copy.deepcopy(self._steps)
-        artifacts = copy.deepcopy(self._artifacts)
-        resources = copy.deepcopy(self._resources)
-
-        if not artifacts:
-            raise ValueError("no artifacts defined")
-
-        actions = []
-
-        while steps:
-            for step_node in list(steps.values()):
-                dep_addresses = self._rev_graph[step_node.address]
-
-                res = resolve_addresses(
-                    {addr: art.item for addr, art in artifacts.items()}
-                    | {addr: resource.item for addr, resource in resources.items()},
-                    dep_addresses,
-                )
-
-                if res is None:
-                    continue
-
-                after = [
-                    Address.from_string(step_node.address.base, address)
-                    for address in step_node.item.after
-                ]
-                all_after_resolved = all(
-                    (address in artifacts or address in resources) for address in after
-                )
-                if not all_after_resolved:
-                    continue
-
-                actions.append(
-                    Action(
-                        address=step_node.address,
-                        state=ActionState.NOT_STARTED,
-                        result=None,
-                        error=None,
-                    )
-                )
-
-                del steps[step_node.address]
-                artifacts[step_node.address] = step_node
-
-        return Plan(
-            actions=actions,
-        )
 
     def _run_action(self, node: Node[Step] | Node[Check], results):
         dep_artifacts = resolve_addresses(

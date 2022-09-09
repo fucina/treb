@@ -1,7 +1,10 @@
 """Implementation artifacts used to represt Docker images."""
+import docker
 from attrs import define
 
 from treb.core.artifact import Artifact, ArtifactSpec
+
+CLIENT = docker.from_env()
 
 
 @define(frozen=True, kw_only=True)
@@ -12,12 +15,23 @@ class DockerImageSpec(ArtifactSpec):
         image_name: the name of the image without the tag.
     """
 
+    image_name: str
+    tag_prefix: str = ""
+
     @classmethod
     def spec_name(cls) -> str:
         return "docker_image"
 
-    image_name: str
-    tag_prefix: str = ""
+    def exists(self, revision: str) -> bool:
+        tag = f"{self.image_name}:{self.tag_prefix}{revision}"
+
+        try:
+            CLIENT.images.get_registry_data(tag)
+
+        except docker.errors.NotFound:
+            return False
+
+        return True
 
 
 @define(frozen=True, kw_only=True)

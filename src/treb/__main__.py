@@ -7,6 +7,7 @@ import click
 from treb.core.config import load_config
 from treb.core.context import Context, load_context
 from treb.core.git import get_current_commit
+from treb.core.plan import generate_plan
 from treb.core.state import init_revision, init_state, load_revision, save_revision
 from treb.core.strategy import prepare_strategy
 from treb.utils import log, print_info, print_waiting
@@ -44,7 +45,15 @@ def apply(ctx: Context, force: bool):
 
     log("loading revision state")
     revision = load_revision(ctx=ctx)
-    strategy_plan = strategy.plan() if revision is None or force else revision.plan
+
+    if revision is None or force:
+        available_artifacts = [
+            addr for addr, art in strategy.artifacts().items() if art.exists(ctx.revision)
+        ]
+        strategy_plan = generate_plan(strategy, available_artifacts)
+
+    else:
+        strategy_plan = revision.plan
 
     with print_waiting("executing plan"):
         for curr_plan in strategy.execute(strategy_plan):  # pylint: disable=not-an-iterable
@@ -52,13 +61,26 @@ def apply(ctx: Context, force: bool):
 
 
 @cli.command()
+@click.option("-a", "--all", "all_artifacts", default=False)
 @click.pass_obj
-def plan(ctx: Context):
+def plan(ctx: Context, all_artifacts: bool):
     """Shows the plan for a deploy strategy without executing it."""
     strategy = prepare_strategy(ctx=ctx)
 
     revision = load_revision(ctx=ctx)
-    strategy_plan = strategy.plan() if revision is None else revision.plan
+
+    if revision is None:
+        if all_artifacts:
+            available_artifacts = list(strategy.artifacts().keys())
+        else:
+            available_artifacts = [
+                addr for addr, art in strategy.artifacts().items() if art.exists(ctx.revision)
+            ]
+
+        strategy_plan = generate_plan(strategy, available_artifacts)
+
+    else:
+        strategy_plan = revision.plan
 
     print_info(f"plan: {strategy_plan}")
 
