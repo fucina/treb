@@ -1,7 +1,5 @@
 # treb
 
-![build status](https://github.com/fucina/treb/actions/workflows/pants.yaml/badge.svg)
-
 Treb is a fast and user-friendly deploy system for applications running in the cloud.
 
 ## Overview
@@ -13,3 +11,8 @@ proven best practices (i.e. canary deployments, blue-gree deployments, A/B testi
 
 All it's done using Git to store its state and track any change with no need to deploy any remote agent in order to
 simplify your system and your life!
+
+## Build
+
+![build status](https://github.com/fucina/treb/actions/workflows/pants.yaml/badge.svg)
+[![codecov](https://codecov.io/gh/fucina/treb/branch/main/graph/badge.svg?token=J503LNI5X1)](https://codecov.io/gh/fucina/treb)
