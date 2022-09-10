@@ -6,8 +6,6 @@ from typing import TYPE_CHECKING, Dict, List, Optional
 from attrs import define
 
 from treb.core.address import Address
-from treb.core.artifact import Artifact
-from treb.core.resource import Resource
 from treb.core.spec import Spec
 
 if TYPE_CHECKING:
@@ -59,42 +57,48 @@ class Plan:
     actions: List[Action]
 
 
-def resolve_addresses(items, addresses):
-    """Visits the dependency addresses in `dep_address` and creates a
-    dictionary with the same structure but replacing all the addresses with its
-    corresponding artifact using the mapping `artifacts`.
+class UnresolvableAddress(Exception):
+    """Raised when an address cannot be reolved into its actual value."""
+
+    def __init__(self, address) -> None:
+        super().__init__(address)
+
+        self.address = address
+
+
+def resolve_addresses(mapping, value):
+    """Visits the dependency addresses in `addresses` and creates a dictionary
+    with the same structure but replacing all the addresses with its
+    corresponding artifact using the mapping `items`.
 
     If any of th addresses cannot be resolved, it will return `None`.
 
     Arguments:
-        items: contains all the known artifact used for the address resolution.
-        addresses: all the dependency addresses to resolve.
+        mapping: contains all the known artifact used for the address resolution.
+        value: all the dependency addresses to resolve.
 
     Returns:
         A copy of the dictionary with the addresses replaced by the artifacts.
         `None` if any of the addresses cannot be resolved.
     """
-    dependencies: Dict[str, Artifact | Resource | Dict[str, Artifact | Resource]] = {}
 
-    for name, addr in addresses.items():
-        if isinstance(addr, dict):
-            nested_artifacts = {}
+    if isinstance(value, Address):
+        try:
+            return mapping[value]
 
-            for key, nested_addr in addr.items():
-                if nested_addr in items:
-                    nested_artifacts[key] = items[nested_addr]
-                else:
-                    return None
+        except KeyError as exc:
+            raise UnresolvableAddress(value) from exc
 
-            dependencies[name] = nested_artifacts
+    elif isinstance(value, dict):
+        return {
+            key: resolve_addresses(mapping, nested_value) for key, nested_value in value.items()
+        }
 
-        elif addr in items:
-            dependencies[name] = items[addr]
+    elif isinstance(value, list):
+        return [resolve_addresses(mapping, nested_value) for nested_value in value]
 
-        else:
-            return None
-
-    return dependencies
+    else:
+        return value
 
 
 def generate_plan(strategy: "Strategy", available_artifacts: List[Address]) -> Plan:
