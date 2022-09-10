@@ -36,15 +36,8 @@ class Address:
             this step/artifact definition.
     """
 
-    base: str = field()
+    base: str
     name: str = field()
-
-    @base.validator
-    def check_base(self, _, value):  # pylint: disable=no-self-use
-        """Validates the address' base."""
-        for name in value.split("/"):
-            if not is_valid_name(name):
-                raise ValueError(f"invalid address base {value}")
 
     @name.validator
     def check_name(self, _, value):  # pylint: disable=no-self-use

@@ -39,18 +39,12 @@ def test_is_valid_name__return_true_for_valid_name(name):
 @pytest.mark.parametrize(
     ["base", "name"],
     [
-        ("//foo", "bar"),
-        ("/foo", "bar"),
         ("foo", ":bar"),
         ("foo", "9abc"),
         ("foo", "abc-"),
         ("foo", "-abc"),
         ("foo", "-abc-"),
         ("foo", ""),
-        ("foo//bar", "spam"),
-        ("/foo/bar", "spam"),
-        ("//foo/bar", "spam"),
-        ("foo/bar", "/spam"),
     ],
 )
 def test_Address__raises_ValueError_if_invalid(base, name):
@@ -104,7 +98,6 @@ def test_Address_from_address__parse_relative_address(base, address, expected_ba
         ("treb", "foo"),
         ("treb", "::foo"),
         ("treb", "/foo/bar"),
-        ("treb", "//foo:bar:spam"),
         ("treb", ":bar:spam"),
     ],
 )
