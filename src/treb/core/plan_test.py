@@ -1,7 +1,43 @@
+from typing import Optional
+
+import pytest
+from attrs import define
 from testfixtures import ShouldRaise, compare
 
 from treb.core.address import Address
-from treb.core.plan import UnresolvableAddress, resolve_addresses
+from treb.core.artifact import Artifact, ArtifactSpec
+from treb.core.check import Check
+from treb.core.config import Config, ProjectConfig, StateConfig
+from treb.core.context import Context
+from treb.core.plan import (
+    Action,
+    Plan,
+    UnknownAddresses,
+    UnresolvableAddress,
+    generate_plan,
+    resolve_addresses,
+)
+from treb.core.resource import Resource, ResourceSpec
+from treb.core.step import Step
+from treb.core.strategy import Strategy
+
+
+@pytest.fixture
+def treb_context(tmp_path_factory) -> Context:
+    state_path = tmp_path_factory.mktemp("state")
+    proj_path = tmp_path_factory.mktemp("proj")
+
+    config = Config(
+        state=StateConfig(repo_path=str(state_path)),
+        project=ProjectConfig(repo_path=str(proj_path)),
+    )
+
+    ctx = Context(
+        config=config,
+        revision="abc",
+    )
+
+    return ctx
 
 
 def test_resolve_addresses__single_resolvable_address_returns_mapped_value():
@@ -170,3 +206,240 @@ def test_resolve_addresses__raises_UnresolvableAddress_when_address_in_list_cann
         )
 
     compare(exc.raised.address, Address(base="not", name="found"))
+
+
+@define(frozen=True, kw_only=True)
+class DummyArtifactSpec(ArtifactSpec):
+    @classmethod
+    def spec_name(self) -> str:
+        return "dummy_artifact"
+
+    def exists(self, revision: str) -> bool:
+        return True
+
+
+@define(frozen=True, kw_only=True)
+class DummyArtifact(Artifact):
+    pass
+
+
+@define(frozen=True, kw_only=True)
+class DummyResourceSpec(ResourceSpec):
+    @classmethod
+    def spec_name(self) -> str:
+        return "dummy_resource"
+
+
+@define(frozen=True, kw_only=True)
+class DummyResource(Resource):
+    pass
+
+
+@define(frozen=True, kw_only=True)
+class DummyStep(Step):
+
+    artifact: DummyArtifactSpec
+    resource: Optional[DummyResourceSpec] = None
+
+    @classmethod
+    def spec_name(self) -> str:
+        return "dummy_step"
+
+    def run(self, ctx) -> DummyResource:
+        return DummyResource()
+
+    def rollback(self, ctx):
+        pass
+
+
+@define(frozen=True, kw_only=True)
+class DummyCheck(Check):
+
+    resource: DummyResourceSpec
+
+    @classmethod
+    def spec_name(self) -> str:
+        return "dummy_check"
+
+    def check(self, ctx):
+        pass
+
+
+def test_generate_plan__empty_strategy_generates_empty_plan(treb_context):
+    strategy = Strategy(ctx=treb_context)
+    available_artifacts = list(strategy.artifacts().keys())
+
+    res = generate_plan(
+        strategy,
+        available_artifacts,
+    )
+
+    compare(res, Plan(actions=[]))
+
+
+def test_generate_plan__strategy_with_single_artifact_generates_empty_plan(treb_context):
+    strategy = Strategy(ctx=treb_context)
+    strategy.register_artifact("root", DummyArtifactSpec(name="artifact"))
+
+    available_artifacts = list(strategy.artifacts().keys())
+
+    res = generate_plan(
+        strategy,
+        available_artifacts,
+    )
+
+    compare(res, Plan(actions=[]))
+
+
+def test_generate_plan__strategy_with_step_generates_single_action(treb_context):
+    strategy = Strategy(ctx=treb_context)
+    strategy.register_artifact("root", DummyArtifactSpec(name="artifact"))
+    strategy.register_step("root", DummyStep(name="step", artifact="//root:artifact"))
+
+    available_artifacts = list(strategy.artifacts().keys())
+
+    res = generate_plan(
+        strategy,
+        available_artifacts,
+    )
+
+    compare(
+        res,
+        Plan(
+            actions=[
+                Action(address=Address(base="root", name="step")),
+            ]
+        ),
+    )
+
+
+def test_generate_plan__strategy_with_two_indipendent_steps_generates_two_actions(treb_context):
+    strategy = Strategy(ctx=treb_context)
+    strategy.register_artifact("root", DummyArtifactSpec(name="artifact"))
+    strategy.register_step("root", DummyStep(name="step-foo", artifact="//root:artifact"))
+    strategy.register_step("root", DummyStep(name="step-bar", artifact="//root:artifact"))
+
+    available_artifacts = list(strategy.artifacts().keys())
+
+    res = generate_plan(
+        strategy,
+        available_artifacts,
+    )
+
+    compare(
+        res,
+        Plan(
+            actions=[
+                Action(address=Address(base="root", name="step-bar")),
+                Action(address=Address(base="root", name="step-foo")),
+            ]
+        ),
+    )
+
+
+def test_generate_plan__strategy_with_dependent_steps_generates_all_actions_in_order(treb_context):
+    strategy = Strategy(ctx=treb_context)
+    strategy.register_artifact("root", DummyArtifactSpec(name="artifact"))
+    strategy.register_step(
+        "root", DummyStep(name="step-three", artifact="//root:artifact", after=["//root:step-two"])
+    )
+    strategy.register_step("root", DummyStep(name="step-one", artifact="//root:artifact"))
+    strategy.register_step(
+        "root", DummyStep(name="step-two", artifact="//root:artifact", after=["//root:step-one"])
+    )
+
+    available_artifacts = list(strategy.artifacts().keys())
+
+    res = generate_plan(
+        strategy,
+        available_artifacts,
+    )
+
+    compare(
+        res,
+        Plan(
+            actions=[
+                Action(address=Address(base="root", name="step-one")),
+                Action(address=Address(base="root", name="step-two")),
+                Action(address=Address(base="root", name="step-three")),
+            ]
+        ),
+    )
+
+
+def test_generate_plan__can_generate_actions_for_all_specs(treb_context):
+    strategy = Strategy(ctx=treb_context)
+    strategy.register_check("root", DummyCheck(name="check", resource="//root:step"))
+    strategy.register_step(
+        "root", DummyStep(name="step", artifact="//root:artifact", resource="//root:resource")
+    )
+    strategy.register_resource("root", DummyResourceSpec(name="resource"))
+    strategy.register_artifact("root", DummyArtifactSpec(name="artifact"))
+
+    available_artifacts = list(strategy.artifacts().keys())
+
+    res = generate_plan(
+        strategy,
+        available_artifacts,
+    )
+
+    compare(
+        res,
+        Plan(
+            actions=[
+                Action(address=Address(base="root", name="step")),
+                Action(address=Address(base="root", name="check")),
+            ]
+        ),
+    )
+
+
+def test_generate_plan__can_generate_plan_for_diamond_shaped_dependencies(treb_context):
+    strategy = Strategy(ctx=treb_context)
+    strategy.register_artifact("root", DummyArtifactSpec(name="artifact"))
+    strategy.register_step("root", DummyStep(name="step-foo", artifact="//root:artifact"))
+    strategy.register_step("root", DummyStep(name="step-bar", artifact="//root:artifact"))
+    strategy.register_check(
+        "root", DummyCheck(name="check", resource="//root:step-foo", after=["//root:step-bar"])
+    )
+
+    available_artifacts = list(strategy.artifacts().keys())
+
+    res = generate_plan(
+        strategy,
+        available_artifacts,
+    )
+
+    compare(
+        res,
+        Plan(
+            actions=[
+                Action(address=Address(base="root", name="step-bar")),
+                Action(address=Address(base="root", name="step-foo")),
+                Action(address=Address(base="root", name="check")),
+            ]
+        ),
+    )
+
+
+def test_generate_plan__raise_AddressNotFound_if_nodes_use_unknown_addresses(treb_context):
+    strategy = Strategy(ctx=treb_context)
+    strategy.register_artifact("root", DummyArtifactSpec(name="artifact"))
+    strategy.register_step("root", DummyStep(name="step-foo", artifact="//root:not-found"))
+    strategy.register_check("root", DummyCheck(name="check", resource="//root:impossible"))
+
+    available_artifacts = list(strategy.artifacts().keys())
+
+    with ShouldRaise(UnknownAddresses) as exc:
+        generate_plan(
+            strategy,
+            available_artifacts,
+        )
+
+    compare(
+        exc.raised.addresses,
+        [
+            Address(base="root", name="impossible"),
+            Address(base="root", name="not-found"),
+        ],
+    )

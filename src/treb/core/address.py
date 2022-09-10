@@ -26,7 +26,7 @@ def is_valid_name(name: str) -> bool:
     return all((ch.isalnum() or ch == "-") for ch in name)
 
 
-@define(frozen=True, kw_only=True)
+@define(frozen=True, kw_only=True, order=True)
 class Address:
     """Represent an address used to identify a step or artifact in a deploy
     strategy.

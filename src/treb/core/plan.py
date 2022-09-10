@@ -1,7 +1,7 @@
 """Functions and data structures to handle and represent a strategy plan
 describing all the actions needed to complete a deployment."""
 import enum
-from typing import TYPE_CHECKING, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 from attrs import define
 
@@ -44,9 +44,9 @@ class Action:
     """
 
     address: Address
-    state: ActionState
-    result: Optional[Dict[str, str]]
-    error: Optional[Dict[str, str]]
+    state: ActionState = ActionState.NOT_STARTED
+    result: Optional[Dict[str, str]] = None
+    error: Optional[Dict[str, str]] = None
 
 
 @define(frozen=True, kw_only=True)
@@ -101,6 +101,26 @@ def resolve_addresses(mapping, value):
         return value
 
 
+_RESULT_PLACEHOLDER = object()
+
+
+class UnknownAddresses(Exception):
+    """Raised when a strategy contains nodes refering to unknown addresses.
+
+    Arguments:
+        addresses: unknown addresses used in the strategy.
+    """
+
+    def __init__(self, addresses: List[Address]) -> None:
+        super().__init__(addresses)
+
+        self.addresses = addresses
+
+    def __str__(self):
+        addresses_str = ", ".join(str(addr) for addr in self.addresses)
+        return f"cannot find addresses: {addresses_str}"
+
+
 def generate_plan(strategy: "Strategy", available_artifacts: List[Address]) -> Plan:
     """Generates a new plan for the deployment strategy.
 
@@ -118,23 +138,33 @@ def generate_plan(strategy: "Strategy", available_artifacts: List[Address]) -> P
     resources = strategy.resources()
 
     actions = []
+    results: Dict[Address, Any] = artifacts | resources
+
+    prev_steps = None
+    unresolvable_addresses: List[Address] = []
 
     while steps:
-        for step_addr, step in list(steps.items()):
+        if list(sorted(steps.items())) == prev_steps:
+            raise UnknownAddresses(addresses=unresolvable_addresses)
+
+        unresolvable_addresses = []
+        prev_steps = list(sorted(steps.items()))
+
+        for step_addr, step in list(sorted(steps.items())):
             dep_addresses = strategy.dependencies(step_addr)
 
-            res = resolve_addresses(
-                artifacts | resources,
-                dep_addresses,
-            )
+            try:
+                resolve_addresses(
+                    results,
+                    dep_addresses,
+                )
 
-            if res is None:
+            except UnresolvableAddress as exc:
+                unresolvable_addresses.append(exc.address)
                 continue
 
             after = [Address.from_string(step_addr.base, address) for address in step.after]
-            all_after_resolved = all(
-                (address in artifacts or address in resources) for address in after
-            )
+            all_after_resolved = all(address in results for address in after)
             if not all_after_resolved:
                 continue
 
@@ -148,7 +178,7 @@ def generate_plan(strategy: "Strategy", available_artifacts: List[Address]) -> P
             )
 
             del steps[step_addr]
-            artifacts[step_addr] = step
+            results[step_addr] = _RESULT_PLACEHOLDER
 
     return Plan(
         actions=actions,
