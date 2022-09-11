@@ -3,6 +3,7 @@ import copy
 import inspect
 import os
 import types
+import typing
 from collections import defaultdict
 from typing import Any, Dict, Generic, Iterable, Type, TypeVar, get_args, get_origin
 
@@ -10,12 +11,13 @@ from attrs import define, evolve, fields
 from cattrs import structure, unstructure
 
 from treb.core.address import Address
-from treb.core.artifact import Artifact, ArtifactSpec
+from treb.core.artifact import ArtifactSpec
 from treb.core.check import Check, FailedCheck
 from treb.core.context import Context
 from treb.core.deploy import Vars, discover_deploy_files
 from treb.core.plan import ActionState, Plan, resolve_addresses
-from treb.core.resource import Resource, ResourceSpec
+from treb.core.resource import ResourceSpec
+from treb.core.spec import Spec
 from treb.core.step import Step
 from treb.utils import error, print_exception, print_waiting, rollback, success
 
@@ -44,7 +46,7 @@ def is_addressable_type(type_) -> bool:
     Returns:
         True if it can be used to instantiate a node. Otherwise false.
     """
-    return istype(type_, (Artifact, ArtifactSpec, Resource, ResourceSpec, Step))
+    return istype(type_, Spec)
 
 
 def make_address(value: object, base_path: str) -> Address:
@@ -104,9 +106,20 @@ def extract_addresses(arg_type: Type[ArgType], value: Any, base_path: str):
     if origin is not None:
         args = get_args(arg_type)
 
-        if istype(origin, types.UnionType):
-            if any(True for arg in args if is_addressable_type(arg)):
-                return make_address(value, base_path)  #
+        if origin is typing.Union or issubclass(origin, types.UnionType):
+            for arg in args:
+                if is_addressable_type(arg):
+                    try:
+                        return make_address(value, base_path)
+
+                    except TypeError:
+                        pass
+
+                else:
+                    try:
+                        return extract_addresses(arg, value, base_path)
+                    except TypeError:
+                        pass
 
         if istype(origin, dict):
             _, value_type = args
@@ -116,10 +129,18 @@ def extract_addresses(arg_type: Type[ArgType], value: Any, base_path: str):
                 for nested_key, nested_value in value.items()
             }
 
+        if istype(origin, list):
+            return [extract_addresses(args[0], nested_value, base_path) for nested_value in value]
+
     if is_addressable_type(arg_type):
         return make_address(value, base_path)
 
-    return None
+    if isinstance(value, arg_type):
+        return value
+
+    raise TypeError(
+        f"value of type {type(value).__name__} cannot be assign to tyoe {arg_type.__name__}"
+    )
 
 
 class Strategy:
