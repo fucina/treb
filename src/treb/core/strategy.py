@@ -5,6 +5,7 @@ import os
 import types
 import typing
 from collections import defaultdict
+from pathlib import Path
 from typing import Any, Dict, Generic, Iterable, Type, TypeVar, get_args, get_origin
 
 from attrs import define, evolve, fields
@@ -139,7 +140,7 @@ def extract_addresses(arg_type: Type[ArgType], value: Any, base_path: str):
         return value
 
     raise TypeError(
-        f"value of type {type(value).__name__} cannot be assign to tyoe {arg_type.__name__}"
+        f"value of type {type(value).__name__} cannot be assign to type {arg_type.__name__}"
     )
 
 
@@ -156,6 +157,11 @@ class Strategy:
         self._artifacts = {}
         self._resources = {}
         self._rev_graph = defaultdict(dict)
+
+    def specs(self) -> Dict[Address, Spec]:
+        """Returns a mapping of addresses to all specs defined in the
+        deployment strategy."""
+        return self.steps() | self.artifacts() | self.resources()
 
     def steps(self) -> Dict[Address, Step]:
         """Returns a mapping of addresses to all steps defined in the
@@ -174,7 +180,14 @@ class Strategy:
 
     def dependencies(self, address):
         """Returns all the dependencies of the given address."""
-        return copy.deepcopy(self._rev_graph[address])
+        deps = copy.deepcopy(self._rev_graph[address])
+
+        try:
+            deps.pop("name")
+        except KeyError:
+            pass
+
+        return deps
 
     def register_artifact(self, path: str, artifact: ArtifactSpec):
         """Adds an artifact to the deploy strategy.
@@ -425,9 +438,12 @@ def prepare_strategy(ctx: Context) -> Strategy:
     for deploy_file in discover_deploy_files(
         root=ctx.config.project.repo_path, deploy_filename=ctx.config.deploy_filename
     ):
-        base = os.path.normpath(os.path.dirname(deploy_file.path))
+        base_path = Path(os.path.normpath(os.path.dirname(deploy_file.path))).relative_to(
+            ctx.config.project.repo_path
+        )
 
-        specs = {key: _register(base, value) for key, value in ctx.specs.items()}
+        base = "" if base_path == Path() else str(base_path)
+        specs = {key: _register(str(base), value) for key, value in ctx.specs.items()}
 
         exec_globals: Dict[str, Any] = {"var": Vars(ctx.config.vars), **specs}
 
