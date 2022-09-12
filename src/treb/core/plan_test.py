@@ -11,6 +11,7 @@ from treb.core.config import Config, ProjectConfig, StateConfig
 from treb.core.context import Context
 from treb.core.plan import (
     Action,
+    ActionType,
     Plan,
     UnknownAddresses,
     UnresolvableAddress,
@@ -307,7 +308,7 @@ def test_generate_plan__strategy_with_step_generates_single_action(treb_context)
         res,
         Plan(
             actions=[
-                Action(address=Address(base="root", name="step")),
+                Action(type=ActionType.RUN, address=Address(base="root", name="step")),
             ]
         ),
     )
@@ -330,8 +331,8 @@ def test_generate_plan__strategy_with_two_indipendent_steps_generates_two_action
         res,
         Plan(
             actions=[
-                Action(address=Address(base="root", name="step-bar")),
-                Action(address=Address(base="root", name="step-foo")),
+                Action(type=ActionType.RUN, address=Address(base="root", name="step-bar")),
+                Action(type=ActionType.RUN, address=Address(base="root", name="step-foo")),
             ]
         ),
     )
@@ -359,9 +360,9 @@ def test_generate_plan__strategy_with_dependent_steps_generates_all_actions_in_o
         res,
         Plan(
             actions=[
-                Action(address=Address(base="root", name="step-one")),
-                Action(address=Address(base="root", name="step-two")),
-                Action(address=Address(base="root", name="step-three")),
+                Action(type=ActionType.RUN, address=Address(base="root", name="step-one")),
+                Action(type=ActionType.RUN, address=Address(base="root", name="step-two")),
+                Action(type=ActionType.RUN, address=Address(base="root", name="step-three")),
             ]
         ),
     )
@@ -387,8 +388,8 @@ def test_generate_plan__can_generate_actions_for_all_specs(treb_context):
         res,
         Plan(
             actions=[
-                Action(address=Address(base="root", name="step")),
-                Action(address=Address(base="root", name="check")),
+                Action(type=ActionType.RUN, address=Address(base="root", name="step")),
+                Action(type=ActionType.CHECK, address=Address(base="root", name="check")),
             ]
         ),
     )
@@ -414,9 +415,9 @@ def test_generate_plan__can_generate_plan_for_diamond_shaped_dependencies(treb_c
         res,
         Plan(
             actions=[
-                Action(address=Address(base="root", name="step-bar")),
-                Action(address=Address(base="root", name="step-foo")),
-                Action(address=Address(base="root", name="check")),
+                Action(type=ActionType.RUN, address=Address(base="root", name="step-bar")),
+                Action(type=ActionType.RUN, address=Address(base="root", name="step-foo")),
+                Action(type=ActionType.CHECK, address=Address(base="root", name="check")),
             ]
         ),
     )

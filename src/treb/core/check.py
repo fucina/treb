@@ -9,6 +9,11 @@ from treb.core.spec import Spec
 class FailedCheck(Exception):
     """Raised when a depoyment check failed."""
 
+    def __init__(self, result):
+        super().__init__(result)
+
+        self.result = result
+
 
 @define(frozen=True, kw_only=True)
 class Check(Spec):

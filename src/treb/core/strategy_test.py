@@ -8,7 +8,7 @@ from testfixtures import ShouldRaise, compare
 
 from treb.core.address import Address
 from treb.core.artifact import Artifact, ArtifactSpec
-from treb.core.check import Check
+from treb.core.check import Check, FailedCheck
 from treb.core.config import Config, ProjectConfig, StateConfig
 from treb.core.context import Context
 from treb.core.resource import Resource, ResourceSpec
@@ -24,60 +24,65 @@ from treb.core.strategy import (
 
 
 @define(frozen=True, kw_only=True)
-class DummyArtifactSpec(ArtifactSpec):
+class ArtifactTestSpec(ArtifactSpec):
     @classmethod
     def spec_name(self) -> str:
-        return "dummy_artifact"
+        return "test_artifact"
 
     def exists(self, revision: str) -> bool:
         return True
 
 
 @define(frozen=True, kw_only=True)
-class DummyArtifact(Artifact):
+class ArtifactTest(Artifact):
     pass
 
 
 @define(frozen=True, kw_only=True)
-class DummyResourceSpec(ResourceSpec):
+class ResourceTestSpec(ResourceSpec):
     @classmethod
     def spec_name(self) -> str:
-        return "dummy_resource"
+        return "test_resource"
 
 
 @define(frozen=True, kw_only=True)
-class DummyResource(Resource):
-    pass
+class ResourceTest(Resource):
+
+    foo: str
 
 
 @define(frozen=True, kw_only=True)
-class DummyStep(Step):
+class StepTest(Step):
 
-    artifact: DummyArtifactSpec
-    resource: typing.Optional[DummyResourceSpec] = None
+    artifact: ArtifactTestSpec
+    resource: ResourceTestSpec
 
     @classmethod
     def spec_name(self) -> str:
-        return "dummy_step"
+        return "test_step"
 
-    def run(self, ctx) -> DummyResource:
-        return DummyResource()
+    def run(self, ctx) -> ResourceTest:
+        return ResourceTest(foo="abc")
 
     def rollback(self, ctx):
         pass
 
 
 @define(frozen=True, kw_only=True)
-class DummyCheck(Check):
+class CheckTest(Check):
 
-    resource: DummyResourceSpec
+    resource: ResourceTestSpec
+    fail: bool = False
 
     @classmethod
     def spec_name(self) -> str:
-        return "dummy_check"
+        return "test_check"
 
-    def check(self, ctx):
-        pass
+    def check(self, ctx) -> dict:
+        if self.fail:
+            raise FailedCheck({"passed": False})
+
+        return {"passed": True}
 
 
 @pytest.fixture
@@ -94,10 +99,10 @@ def treb_context(tmp_path_factory) -> Context:
         config=config,
         revision="abc",
         specs={
-            "dummy_step": DummyStep,  # type: ignore
-            "dummy_check": DummyCheck,  # type: ignore
-            "dummy_artifact": DummyArtifactSpec,  # type: ignore
-            "dummy_resource": DummyResourceSpec,  # type: ignore
+            "test_step": StepTest,  # type: ignore
+            "test_check": CheckTest,  # type: ignore
+            "test_artifact": ArtifactTestSpec,  # type: ignore
+            "test_resource": ResourceTestSpec,  # type: ignore
         },
     )
 
@@ -105,85 +110,37 @@ def treb_context(tmp_path_factory) -> Context:
 
 
 def test_is_addressable_type__returns_true_for_artifact_spec():
-    @define(frozen=True, kw_only=True)
-    class DummyArtifact(ArtifactSpec):
-        @classmethod
-        def spec_name(self) -> str:
-            return "dummy"
-
-        def exists(self, revision: str) -> bool:
-            return True
-
-    res = is_addressable_type(DummyArtifact)
+    res = is_addressable_type(ArtifactTestSpec)
 
     compare(res, True)
 
 
 def test_is_addressable_type__returns_true_for_step():
-    @define(frozen=True, kw_only=True)
-    class DummyStep(Step):
-        @classmethod
-        def spec_name(self) -> str:
-            return "dummy"
-
-        def run(self, ctx):
-            pass
-
-        def rollback(self, ctx):
-            pass
-
-    res = is_addressable_type(DummyStep)
+    res = is_addressable_type(StepTest)
 
     compare(res, True)
 
 
-def test_is_addressable_type__returns_true_for_resource():
-    @define(frozen=True, kw_only=True)
-    class DummyResource(ResourceSpec):
-        @classmethod
-        def spec_name(self) -> str:
-            return "dummy"
-
-    res = is_addressable_type(DummyResource)
+def test_is_addressable_type__returns_true_for_resource_spec():
+    res = is_addressable_type(ResourceTestSpec)
 
     compare(res, True)
 
 
 def test_is_addressable_type__returns_true_for_check():
-    @define(frozen=True, kw_only=True)
-    class DummyCheck(Check):
-        @classmethod
-        def spec_name(self) -> str:
-            return "dummy"
-
-        def check(self, ctx):
-            pass
-
-    res = is_addressable_type(DummyCheck)
+    res = is_addressable_type(CheckTest)
 
     compare(res, True)
 
 
 def test_is_addressable_type__returns_false_for_artifact():
-    @define(frozen=True, kw_only=True)
-    class DummyArtifact(Artifact):
-        @classmethod
-        def spec_name(self) -> str:
-            return "dummy"
-
-    res = is_addressable_type(DummyArtifact)
+    res = is_addressable_type(ArtifactTest)
 
     compare(res, False)
 
 
 def test_is_addressable_type__returns_false_for_resource():
-    @define(frozen=True, kw_only=True)
-    class DummyResource(Resource):
-        @classmethod
-        def spec_name(self) -> str:
-            return "dummy"
-
-    res = is_addressable_type(DummyResource)
+    res = is_addressable_type(ResourceTest)
 
     compare(res, False)
 
@@ -263,40 +220,33 @@ def test_istype__behave_same_as_subclass(cls, class_or_tuple):
     compare(res, expected)
 
 
-@define(frozen=True, kw_only=True)
-class ArtifactTest(ArtifactSpec):
-    @classmethod
-    def spec_name(self) -> str:
-        return "dummy"
-
-
 def test_extract_addresses__return_unchanged_address():
-    res = extract_addresses(ArtifactTest, Address(base="foo", name="bar"), "root")
+    res = extract_addresses(ArtifactTestSpec, Address(base="foo", name="bar"), "root")
 
     compare(res, Address(base="foo", name="bar"))
 
 
 def test_extract_addresses__transform_relative_string_into_address():
-    res = extract_addresses(ArtifactTest, ":foo", "root")
+    res = extract_addresses(ArtifactTestSpec, ":foo", "root")
 
     compare(res, Address(base="root", name="foo"))
 
 
 def test_extract_addresses__transform_absolute_string_into_address():
-    res = extract_addresses(ArtifactTest, "//foo:bar", "root")
+    res = extract_addresses(ArtifactTestSpec, "//foo:bar", "root")
 
     compare(res, Address(base="foo", name="bar"))
 
 
 def test_extract_addresses__optional_with_valid_value_return_address():
-    res = extract_addresses(typing.Optional[ArtifactTest], "//foo:bar", "root")
+    res = extract_addresses(typing.Optional[ArtifactTestSpec], "//foo:bar", "root")
 
     compare(res, Address(base="foo", name="bar"))
 
 
 def test_extract_addresses__transform_addresses_in_dict():
     res = extract_addresses(
-        typing.Dict[str, ArtifactTest | typing.Dict[str, ArtifactTest]],
+        typing.Dict[str, ArtifactTestSpec | typing.Dict[str, ArtifactTestSpec]],
         {"main": "//foo:bar", "nested": {"two": ":bar"}},
         "root",
     )
@@ -312,20 +262,20 @@ def test_extract_addresses__transform_addresses_in_dict():
 
 def test_extract_addresses__transform_addresses_in_dict_ignore_non_addres():
     res = extract_addresses(
-        typing.Dict[str, ArtifactTest | int], {"foo": "//foo:bar", "bar": 1}, "root"
+        typing.Dict[str, ArtifactTestSpec | int], {"foo": "//foo:bar", "bar": 1}, "root"
     )
 
     compare(res, {"foo": Address(base="foo", name="bar"), "bar": 1})
 
 
 def test_extract_addresses__transform_addresses_in_list():
-    res = extract_addresses(typing.List[ArtifactTest], ["//foo:bar", ":bar"], "root")
+    res = extract_addresses(typing.List[ArtifactTestSpec], ["//foo:bar", ":bar"], "root")
 
     compare(res, [Address(base="foo", name="bar"), Address(base="root", name="bar")])
 
 
 def test_extract_addresses__transform_addresses_in_list_ignore_non_address():
-    res = extract_addresses(typing.List[int | ArtifactTest], [1, "//foo:bar", ":bar"], "root")
+    res = extract_addresses(typing.List[int | ArtifactTestSpec], [1, "//foo:bar", ":bar"], "root")
 
     compare(res, [1, Address(base="foo", name="bar"), Address(base="root", name="bar")])
 
@@ -346,13 +296,13 @@ def test_prepare_strategy__register_specs_from_deploy_file(treb_context):
         fp.write(
             textwrap.dedent(
                 """
-        dummy_artifact(name="artifact")
+        test_artifact(name="artifact")
 
-        dummy_resource(name="resource")
+        test_resource(name="resource")
 
-        dummy_step(name="step", resource=":resource", artifact=":artifact")
+        test_step(name="step", resource=":resource", artifact=":artifact")
 
-        dummy_check(name="check", resource=":step")
+        test_check(name="check", resource=":resource", after=[":step"])
         """
             )
         )
@@ -362,12 +312,14 @@ def test_prepare_strategy__register_specs_from_deploy_file(treb_context):
     compare(
         res.specs(),
         {
-            Address(base="", name="artifact"): DummyArtifactSpec(name="artifact"),
-            Address(base="", name="resource"): DummyResourceSpec(name="resource"),
-            Address(base="", name="step"): DummyStep(
+            Address(base="", name="artifact"): ArtifactTestSpec(name="artifact"),
+            Address(base="", name="resource"): ResourceTestSpec(name="resource"),
+            Address(base="", name="step"): StepTest(
                 name="step", resource=":resource", artifact=":artifact"
             ),
-            Address(base="", name="check"): DummyCheck(name="check", resource=":step"),
+            Address(base="", name="check"): CheckTest(
+                name="check", resource=":resource", after=[":step"]
+            ),
         },
     )
 
@@ -375,12 +327,12 @@ def test_prepare_strategy__register_specs_from_deploy_file(treb_context):
 def test_Strategy_dependencies__returns_spec_dependencies(treb_context):
     strategy = Strategy(treb_context)
 
-    strategy.register_artifact("root", DummyArtifactSpec(name="artifact"))
+    strategy.register_artifact("root", ArtifactTestSpec(name="artifact"))
     strategy.register_step(
-        "root", DummyStep(name="step", artifact="//root:artifact", resource="//root:resource")
+        "root", StepTest(name="step", artifact="//root:artifact", resource="//root:resource")
     )
-    strategy.register_resource("root", DummyResourceSpec(name="resource"))
-    strategy.register_check("root", DummyCheck(name="check", resource="//root:resource"))
+    strategy.register_resource("root", ResourceTestSpec(name="resource"))
+    strategy.register_check("root", CheckTest(name="check", resource="//root:resource"))
 
     compare(strategy.dependencies(Address(base="root", name="artifact")), {})
     compare(
@@ -394,5 +346,5 @@ def test_Strategy_dependencies__returns_spec_dependencies(treb_context):
     compare(strategy.dependencies(Address(base="root", name="resource")), {})
     compare(
         strategy.dependencies(Address(base="root", name="check")),
-        {"resource": Address(base="root", name="resource"), "after": []},
+        {"resource": Address(base="root", name="resource"), "after": [], "fail": False},
     )

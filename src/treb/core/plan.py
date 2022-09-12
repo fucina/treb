@@ -6,7 +6,9 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional
 from attrs import define
 
 from treb.core.address import Address
+from treb.core.check import Check
 from treb.core.spec import Spec
+from treb.core.step import Step
 
 if TYPE_CHECKING:
     from treb.core.strategy import Strategy
@@ -16,20 +18,36 @@ if TYPE_CHECKING:
 class ActionState(enum.Enum):
     """Represents the state of an action during the strategy execution.
 
-    * `NOT_STARTED`: the action is ready or is waiting for other dependencies to be resolved.
+    Attributes:
+
+    * `PLANNED`: the action is ready to be executed once the other dependencies are resolved.
     * `IN_PROGRESS`: the execution has started.
-    * `ERRORED`: the execution failed with an error.
-    * `ROLLING_BACK`: the roll back is in progress.
     * `DONE`: the execution completed successfully.
-    * `FAILED`: the execution failed and the roll-back completed.
+    * `FAILED`: the execution failed.
+    * `CANCELLED`: the action has been cancelled and won't be exectued anymore.
     """
 
-    NOT_STARTED = "NOT_STARTED"
+    PLANNED = "PLANNED"
     IN_PROGRESS = "IN_PROGRESS"
-    ERRORED = "ERRORED"
-    ROLLING_BACK = "ROLLING_BACK"
-    DONE = "DONE"
     FAILED = "FAILED"
+    DONE = "DONE"
+    CANCELLED = "CANCELLED"
+
+
+@enum.unique
+class ActionType(enum.Enum):
+    """Describes what type of operation will be performed by an action.
+
+    Attributes:
+
+    * `CHECK`: performs a deployment check.
+    * `RUN`: performs a step run.
+    * `ROLLBACK`: performs a step rollback.
+    """
+
+    CHECK = "CHECK"
+    RUN = "RUN"
+    ROLLBACK = "ROLLBACK"
 
 
 @define(frozen=True, kw_only=True)
@@ -43,8 +61,9 @@ class Action:
         error: the error of a failed action, if available.
     """
 
+    type: ActionType
     address: Address
-    state: ActionState = ActionState.NOT_STARTED
+    state: ActionState = ActionState.PLANNED
     result: Optional[Dict[str, str]] = None
     error: Optional[Dict[str, str]] = None
 
@@ -121,6 +140,16 @@ class UnknownAddresses(Exception):
         return f"cannot find addresses: {addresses_str}"
 
 
+def _get_action_type(spec: Spec) -> ActionType:
+    if isinstance(spec, Step):
+        return ActionType.RUN
+
+    if isinstance(spec, Check):
+        return ActionType.CHECK
+
+    raise TypeError(f"spec of type {type(spec).__name__} cannot create an action")
+
+
 def generate_plan(strategy: "Strategy", available_artifacts: List[Address]) -> Plan:
     """Generates a new plan for the deployment strategy.
 
@@ -170,8 +199,9 @@ def generate_plan(strategy: "Strategy", available_artifacts: List[Address]) -> P
 
             actions.append(
                 Action(
+                    type=_get_action_type(step),
                     address=step_addr,
-                    state=ActionState.NOT_STARTED,
+                    state=ActionState.PLANNED,
                     result=None,
                     error=None,
                 )

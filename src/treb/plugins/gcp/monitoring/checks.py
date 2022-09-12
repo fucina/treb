@@ -271,7 +271,7 @@ class UptimeCheck(Check):
                         break
 
                 if failed:
-                    raise FailedCheck
+                    raise FailedCheck(None)
 
         finally:
             if not self.reuse:

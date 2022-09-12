@@ -6,6 +6,7 @@ import click
 
 from treb.core.config import load_config
 from treb.core.context import Context, load_context
+from treb.core.execute import execute_plan
 from treb.core.git import get_current_commit
 from treb.core.plan import generate_plan
 from treb.core.state import init_revision, init_state, load_revision, save_revision
@@ -56,7 +57,7 @@ def apply(ctx: Context, force: bool):
         strategy_plan = revision.plan
 
     with print_waiting("executing plan"):
-        for curr_plan in strategy.execute(strategy_plan):  # pylint: disable=not-an-iterable
+        for curr_plan in execute_plan(strategy, strategy_plan):  # pylint: disable=not-an-iterable
             save_revision(ctx=ctx, plan=curr_plan)
 
 
