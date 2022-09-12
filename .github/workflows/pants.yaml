@@ -77,7 +77,8 @@ jobs:
     - name: Test
       run: |
         ./pants test ::
-    - uses: codecov/codecov-action@v3
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
       with:
         files: ./dist/coverage/python/coverage.xml
     - name: Login to GitHub registry
