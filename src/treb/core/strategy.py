@@ -15,7 +15,7 @@ from treb.core.check import Check
 from treb.core.context import Context
 from treb.core.deploy import Vars, discover_deploy_files
 from treb.core.resource import ResourceSpec
-from treb.core.spec import Spec
+from treb.core.spec import Spec, SpecResult
 from treb.core.step import Step
 
 ItemType = TypeVar("ItemType", ArtifactSpec, Step, Check, ResourceSpec)
@@ -43,7 +43,7 @@ def is_addressable_type(type_) -> bool:
     Returns:
         True if it can be used to instantiate a node. Otherwise false.
     """
-    return istype(type_, Spec)
+    return istype(type_, (Spec, SpecResult))
 
 
 def make_address(value: object, base_path: str) -> Address:
@@ -87,7 +87,11 @@ def istype(cls, type_):
 ArgType = TypeVar("ArgType")
 
 
-def extract_addresses(arg_type: Type[ArgType], value: Any, base_path: str):
+def extract_addresses(  # pylint: disable=too-many-return-statements,too-many-branches
+    arg_type: Type[ArgType],
+    value: Any,
+    base_path: str,
+):
     """Inspects the type and value of a field to find all its dependency
     addresses.
 
@@ -104,6 +108,14 @@ def extract_addresses(arg_type: Type[ArgType], value: Any, base_path: str):
         args = get_args(arg_type)
 
         if origin is typing.Union or issubclass(origin, types.UnionType):
+            for arg in args:
+                try:
+                    if isinstance(value, arg):
+                        return value
+
+                except TypeError:
+                    pass
+
             for arg in args:
                 if is_addressable_type(arg):
                     try:

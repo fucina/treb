@@ -133,16 +133,16 @@ def test_is_addressable_type__returns_true_for_check():
     compare(res, True)
 
 
-def test_is_addressable_type__returns_false_for_artifact():
+def test_is_addressable_type__returns_true_for_artifact():
     res = is_addressable_type(ArtifactTest)
 
-    compare(res, False)
+    compare(res, True)
 
 
-def test_is_addressable_type__returns_false_for_resource():
+def test_is_addressable_type__returns_true_for_resource():
     res = is_addressable_type(ResourceTest)
 
-    compare(res, False)
+    compare(res, True)
 
 
 @pytest.mark.parametrize(
@@ -242,6 +242,24 @@ def test_extract_addresses__optional_with_valid_value_return_address():
     res = extract_addresses(typing.Optional[ArtifactTestSpec], "//foo:bar", "root")
 
     compare(res, Address(base="foo", name="bar"))
+
+
+def test_extract_addresses__optional_with_none_return_none():
+    res = extract_addresses(typing.Optional[ArtifactTestSpec], None, "root")
+
+    compare(res, None)
+
+
+def test_extract_addresses__optional_dict_with_no_address_returns_none():
+    res = extract_addresses(typing.Optional[typing.Dict[str, str]], None, "root")
+
+    compare(res, None)
+
+
+def test_extract_addresses__optional_dict_with_no_address_returns_dict():
+    res = extract_addresses(typing.Optional[typing.Dict[str, str]], {"foo": "bar"}, "root")
+
+    compare(res, {"foo": "bar"})
 
 
 def test_extract_addresses__transform_addresses_in_dict():

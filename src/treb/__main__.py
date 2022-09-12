@@ -63,12 +63,17 @@ def apply(ctx: Context, force: bool):
 
 @cli.command()
 @click.option("-a", "--all", "all_artifacts", default=False)
+@click.option("-f", "--force", is_flag=True, default=False)
 @click.pass_obj
-def plan(ctx: Context, all_artifacts: bool):
+def plan(ctx: Context, all_artifacts: bool, force: bool):
     """Shows the plan for a deploy strategy without executing it."""
     strategy = prepare_strategy(ctx=ctx)
 
-    revision = load_revision(ctx=ctx)
+    if force:
+        revision = None
+
+    else:
+        revision = load_revision(ctx=ctx)
 
     if revision is None:
         if all_artifacts:

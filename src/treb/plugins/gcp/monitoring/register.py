@@ -7,7 +7,7 @@ from treb.plugins.gcp.monitoring.checks import UptimeCheck
 
 def namespace() -> str:
     """Returns the namespace for the GCP monitoring plugin."""
-    return "gcp_cloudrun"
+    return "gcp_monitoring"
 
 
 def checks() -> Sequence[Type[Check]]:

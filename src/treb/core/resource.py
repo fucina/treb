@@ -2,7 +2,7 @@
 treb."""
 from attrs import define
 
-from treb.core.spec import Spec
+from treb.core.spec import Spec, SpecResult
 
 
 @define(frozen=True, kw_only=True)
@@ -11,5 +11,5 @@ class ResourceSpec(Spec):
 
 
 @define(frozen=True, kw_only=True)
-class Resource:
+class Resource(SpecResult):
     """Base class for all resources supported by treb."""
