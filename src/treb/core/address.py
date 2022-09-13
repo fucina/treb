@@ -1,4 +1,6 @@
 """Representation of an address for any artifact or step."""
+from typing import Optional
+
 from attrs import define, field
 
 __all__ = ["Address", "is_valid_name"]
@@ -32,12 +34,14 @@ class Address:
     strategy.
 
     Arguments:
-        base: base path of the directory where the deploy file is loacated with
-            this step/artifact definition.
+        base: path to the directory of the deploy file where this spec is defined.
+        name: identifies a spec within a single deploy file.
+        attr: points to a attribute in the spec result. Same syntax as `operator.attrgetter`.
     """
 
     base: str
     name: str = field()
+    attr: Optional[str] = field(default=None)
 
     @name.validator
     def check_name(self, _, value):  # pylint: disable=no-self-use
@@ -80,15 +84,26 @@ class Address:
             ValueError: if the address is invalid.
         """
         if addr.startswith(":"):
-            name = addr[1:]
+            postfix = addr[1:]
 
         elif addr.startswith("//"):
-            base, _, name = addr[2:].rpartition(":")
+            base, _, postfix = addr[2:].rpartition(":")
 
         else:
             raise ValueError(f"invalid address format {addr}")
 
-        return cls(
+        name, _, attr = postfix.partition("#")
+
+        return Address(
             base=base,
             name=name,
+            attr=attr if attr else None,
+        )
+
+    @property
+    def without_attr(self) -> "Address":
+        """Returns the address without the attr part."""
+        return Address(
+            base=self.base,
+            name=self.name,
         )

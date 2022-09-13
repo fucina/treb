@@ -66,30 +66,38 @@ def test_Address__stringify_an_address(base, name, expected):
 
 
 @pytest.mark.parametrize(
-    ["base", "address", "expected_base", "expected_name"],
+    ["base", "address", "expected_address"],
     [
-        ("foo", "//foo:bar", "foo", "bar"),
-        ("foo", "//foo/bar:spam", "foo/bar", "spam"),
-        ("other", "//foo/bar:spam", "foo/bar", "spam"),
+        ("foo", "//foo:bar", Address(base="foo", name="bar")),
+        ("foo", "//foo:bar#", Address(base="foo", name="bar")),
+        ("foo", "//foo:bar#field", Address(base="foo", name="bar", attr="field")),
+        ("foo", "//foo/bar:spam", Address(base="foo/bar", name="spam")),
+        ("other", "//foo/bar:spam", Address(base="foo/bar", name="spam")),
+        ("other", "//foo/bar:spam#", Address(base="foo/bar", name="spam")),
+        ("other", "//foo/bar:spam#field", Address(base="foo/bar", name="spam", attr="field")),
     ],
 )
-def test_Address_from_address__parse_absolute_address(base, address, expected_base, expected_name):
+def test_Address_from_address__parse_absolute_address(base, address, expected_address):
     addr = Address.from_string(base, address)
 
-    compare(addr, Address(base=expected_base, name=expected_name))
+    compare(addr, expected_address)
 
 
 @pytest.mark.parametrize(
-    ["base", "address", "expected_base", "expected_name"],
+    ["base", "address", "expected_address"],
     [
-        ("foo", ":bar", "foo", "bar"),
-        ("other", "//foo/bar:spam", "foo/bar", "spam"),
+        ("foo", ":bar", Address(base="foo", name="bar")),
+        ("foo", ":bar#", Address(base="foo", name="bar")),
+        ("foo", ":bar#field", Address(base="foo", name="bar", attr="field")),
+        ("other", "//foo/bar:spam", Address(base="foo/bar", name="spam")),
+        ("other", "//foo/bar:spam#", Address(base="foo/bar", name="spam")),
+        ("other", "//foo/bar:spam#field", Address(base="foo/bar", name="spam", attr="field")),
     ],
 )
-def test_Address_from_address__parse_relative_address(base, address, expected_base, expected_name):
+def test_Address_from_address__parse_relative_address(base, address, expected_address):
     addr = Address.from_string(base, address)
 
-    compare(addr, Address(base=expected_base, name=expected_name))
+    compare(addr, expected_address)
 
 
 @pytest.mark.parametrize(
@@ -99,9 +107,21 @@ def test_Address_from_address__parse_relative_address(base, address, expected_ba
         ("treb", "::foo"),
         ("treb", "/foo/bar"),
         ("treb", ":bar:spam"),
+        ("treb", "#attr"),
     ],
 )
 def test_Address_from_address__raise_ValueError_if_address_is_invalid(base, address):
 
     with ShouldRaise(ValueError):
         Address.from_string(base, address)
+
+
+@pytest.mark.parametrize(
+    ["address", "expected"],
+    [
+        (Address(base="foo", name="bar", attr="spam"), Address(base="foo", name="bar")),
+        (Address(base="foo", name="bar", attr=None), Address(base="foo", name="bar")),
+    ],
+)
+def test_Address_without_attr__removes_attr(address, expected):
+    compare(address, expected)
