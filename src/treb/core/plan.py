@@ -1,6 +1,7 @@
 """Functions and data structures to handle and represent a strategy plan
 describing all the actions needed to complete a deployment."""
 import enum
+import operator
 from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 from attrs import define
@@ -100,10 +101,14 @@ def resolve_addresses(mapping, value):
         A copy of the dictionary with the addresses replaced by the artifacts.
         `None` if any of the addresses cannot be resolved.
     """
-
     if isinstance(value, Address):
         try:
-            return mapping[value]
+            resolved = mapping[value]
+
+            if value.attr is None:
+                return resolved
+
+            return operator.attrgetter(value.attr)(resolved)
 
         except KeyError as exc:
             raise UnresolvableAddress(value) from exc

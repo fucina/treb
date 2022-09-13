@@ -60,6 +60,71 @@ def test_resolve_addresses__single_unresolvable_address_raises_UnresolvableAddre
     compare(exc.raised.address, Address(base="not", name="found"))
 
 
+def test_resolve_addresses__single_resolvable_address_with_attr_returns_mapped_value():
+    @define
+    class Data:
+        x: int
+        y: float
+
+    mapping = {Address(base="a", name="b"): Data(x=1, y=2.3)}
+
+    res = resolve_addresses(
+        mapping,
+        Address(base="a", name="b", attr="x"),
+    )
+
+    compare(res, 1)
+
+    res = resolve_addresses(
+        mapping,
+        Address(base="a", name="b", attr="y"),
+    )
+
+    compare(res, 2.3)
+
+
+def test_resolve_addresses__single_resolvable_address_with_nested_attr_returns_mapped_value():
+    @define
+    class Nested:
+        y: str
+
+    @define
+    class Data:
+        x: int
+        y: float
+        nested: Nested
+
+    mapping = {Address(base="a", name="b"): Data(x=1, y=2.3, nested=Nested(y="foo"))}
+
+    res = resolve_addresses(
+        mapping,
+        Address(base="a", name="b", attr="nested"),
+    )
+
+    compare(res, Nested(y="foo"))
+
+    res = resolve_addresses(
+        mapping,
+        Address(base="a", name="b", attr="nested.y"),
+    )
+
+    compare(res, "foo")
+
+    res = resolve_addresses(
+        mapping,
+        Address(base="a", name="b", attr="x"),
+    )
+
+    compare(res, 1)
+
+    res = resolve_addresses(
+        mapping,
+        Address(base="a", name="b", attr="y"),
+    )
+
+    compare(res, 2.3)
+
+
 def test_resolve_addresses__empty_dict_returns_empty_dict():
     res = resolve_addresses(
         {Address(base="a", name="b"): 1, Address(base="c", name="d"): "spam"}, {}
