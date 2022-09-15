@@ -5,7 +5,7 @@ from attrs import define
 from testfixtures import ShouldRaise, compare
 
 from treb.core.address import Address
-from treb.core.artifact import Artifact, ArtifactSpec
+from treb.core.artifact import Artifact
 from treb.core.check import Check
 from treb.core.config import Config, ProjectConfig, StateConfig
 from treb.core.context import Context
@@ -18,7 +18,7 @@ from treb.core.plan import (
     generate_plan,
     resolve_addresses,
 )
-from treb.core.resource import Resource, ResourceSpec
+from treb.core.resource import Resource
 from treb.core.step import Step
 from treb.core.strategy import Strategy
 
@@ -274,47 +274,49 @@ def test_resolve_addresses__raises_UnresolvableAddress_when_address_in_list_cann
     compare(exc.raised.address, Address(base="not", name="found"))
 
 
-@define(frozen=True, kw_only=True)
-class DummyArtifactSpec(ArtifactSpec):
-    @classmethod
-    def spec_name(self) -> str:
-        return "dummy_artifact"
-
-    def exists(self, revision: str) -> bool:
-        return True
+class Dummy:
+    pass
 
 
 @define(frozen=True, kw_only=True)
 class DummyArtifact(Artifact):
+    @classmethod
+    def spec_name(self) -> str:
+        return "dummy_artifact"
+
+    def resolve(self, ctx: Context) -> Optional[Dummy]:
+        return Dummy()
+
+
+@define(frozen=True, kw_only=True)
+class DummyResource:
     pass
 
 
 @define(frozen=True, kw_only=True)
-class DummyResourceSpec(ResourceSpec):
+class DummyResourceSpec(Resource):
     @classmethod
     def spec_name(self) -> str:
         return "dummy_resource"
 
-
-@define(frozen=True, kw_only=True)
-class DummyResource(Resource):
-    pass
+    def state(self, ctx: Context) -> Optional[DummyResource]:
+        return DummyResource()
 
 
 @define(frozen=True, kw_only=True)
 class DummyStep(Step):
 
-    artifact: DummyArtifactSpec
+    artifact: DummyArtifact
     resource: Optional[DummyResourceSpec] = None
 
     @classmethod
     def spec_name(self) -> str:
         return "dummy_step"
 
-    def run(self, ctx) -> DummyResource:
-        return DummyResource()
+    def run(self, ctx: Context) -> None:
+        return None
 
-    def rollback(self, ctx):
+    def rollback(self, ctx: Context):
         pass
 
 
@@ -327,7 +329,7 @@ class DummyCheck(Check):
     def spec_name(self) -> str:
         return "dummy_check"
 
-    def check(self, ctx):
+    def check(self, ctx: Context):
         pass
 
 
@@ -345,7 +347,7 @@ def test_generate_plan__empty_strategy_generates_empty_plan(treb_context):
 
 def test_generate_plan__strategy_with_single_artifact_generates_empty_plan(treb_context):
     strategy = Strategy(ctx=treb_context)
-    strategy.register_artifact("root", DummyArtifactSpec(name="artifact"))
+    strategy.register_artifact("root", DummyArtifact(name="artifact"))
 
     available_artifacts = list(strategy.artifacts().keys())
 
@@ -359,7 +361,7 @@ def test_generate_plan__strategy_with_single_artifact_generates_empty_plan(treb_
 
 def test_generate_plan__strategy_with_step_generates_single_action(treb_context):
     strategy = Strategy(ctx=treb_context)
-    strategy.register_artifact("root", DummyArtifactSpec(name="artifact"))
+    strategy.register_artifact("root", DummyArtifact(name="artifact"))
     strategy.register_step("root", DummyStep(name="step", artifact="//root:artifact"))
 
     available_artifacts = list(strategy.artifacts().keys())
@@ -381,7 +383,7 @@ def test_generate_plan__strategy_with_step_generates_single_action(treb_context)
 
 def test_generate_plan__strategy_with_two_indipendent_steps_generates_two_actions(treb_context):
     strategy = Strategy(ctx=treb_context)
-    strategy.register_artifact("root", DummyArtifactSpec(name="artifact"))
+    strategy.register_artifact("root", DummyArtifact(name="artifact"))
     strategy.register_step("root", DummyStep(name="step-foo", artifact="//root:artifact"))
     strategy.register_step("root", DummyStep(name="step-bar", artifact="//root:artifact"))
 
@@ -405,7 +407,7 @@ def test_generate_plan__strategy_with_two_indipendent_steps_generates_two_action
 
 def test_generate_plan__strategy_with_dependent_steps_generates_all_actions_in_order(treb_context):
     strategy = Strategy(ctx=treb_context)
-    strategy.register_artifact("root", DummyArtifactSpec(name="artifact"))
+    strategy.register_artifact("root", DummyArtifact(name="artifact"))
     strategy.register_step(
         "root", DummyStep(name="step-three", artifact="//root:artifact", after=["//root:step-two"])
     )
@@ -440,7 +442,7 @@ def test_generate_plan__can_generate_actions_for_all_specs(treb_context):
         "root", DummyStep(name="step", artifact="//root:artifact", resource="//root:resource")
     )
     strategy.register_resource("root", DummyResourceSpec(name="resource"))
-    strategy.register_artifact("root", DummyArtifactSpec(name="artifact"))
+    strategy.register_artifact("root", DummyArtifact(name="artifact"))
 
     available_artifacts = list(strategy.artifacts().keys())
 
@@ -462,7 +464,7 @@ def test_generate_plan__can_generate_actions_for_all_specs(treb_context):
 
 def test_generate_plan__can_generate_plan_for_diamond_shaped_dependencies(treb_context):
     strategy = Strategy(ctx=treb_context)
-    strategy.register_artifact("root", DummyArtifactSpec(name="artifact"))
+    strategy.register_artifact("root", DummyArtifact(name="artifact"))
     strategy.register_step("root", DummyStep(name="step-foo", artifact="//root:artifact"))
     strategy.register_step("root", DummyStep(name="step-bar", artifact="//root:artifact"))
     strategy.register_check(
@@ -490,7 +492,7 @@ def test_generate_plan__can_generate_plan_for_diamond_shaped_dependencies(treb_c
 
 def test_generate_plan__raise_AddressNotFound_if_nodes_use_unknown_addresses(treb_context):
     strategy = Strategy(ctx=treb_context)
-    strategy.register_artifact("root", DummyArtifactSpec(name="artifact"))
+    strategy.register_artifact("root", DummyArtifact(name="artifact"))
     strategy.register_step("root", DummyStep(name="step-foo", artifact="//root:not-found"))
     strategy.register_check("root", DummyCheck(name="check", resource="//root:impossible"))
 

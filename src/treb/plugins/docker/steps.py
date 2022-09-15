@@ -4,7 +4,7 @@ from attrs import define
 
 from treb.core.context import Context
 from treb.core.step import Step
-from treb.plugins.docker.artifacts import DockerImageArtifact, DockerImageSpec
+from treb.plugins.docker.artifacts import DockerImage, DockerImageSpec
 from treb.utils import log, print_waiting
 
 CLIENT = docker.from_env()
@@ -24,16 +24,16 @@ class DockerPull(Step):
 
     origin: DockerImageSpec
 
-    def run(self, ctx: Context) -> DockerImageArtifact:
+    def run(self, ctx: Context) -> DockerImage:
         tag = f"{self.origin.image_name}:{self.origin.tag_prefix}{ctx.revision}"
 
         with print_waiting("pulling docker image"):
             CLIENT.images.pull(tag)
             log(f"pulled docker image {tag}")
 
-        return DockerImageArtifact(tag=tag)
+        return DockerImage(tag=tag)
 
-    def rollback(self, ctx):
+    def rollback(self, ctx: Context):
         pass
 
 
@@ -50,10 +50,10 @@ class DockerPush(Step):
     def spec_name(cls) -> str:
         return "docker_push"
 
-    origin: DockerImageArtifact
+    origin: DockerImage
     dest: DockerImageSpec
 
-    def run(self, ctx: Context) -> DockerImageArtifact:
+    def run(self, ctx: Context) -> DockerImage:
         dest_tag = f"{self.dest.image_name}:{self.dest.tag_prefix}{ctx.revision}"
 
         image = CLIENT.images.get(self.origin.tag)
@@ -63,7 +63,7 @@ class DockerPush(Step):
             CLIENT.images.push(dest_tag)
             log(f"pushed docker image from {self.origin.tag} to {dest_tag}")
 
-        return DockerImageArtifact(tag=dest_tag)
+        return DockerImage(tag=dest_tag)
 
-    def rollback(self, ctx):
+    def rollback(self, ctx: Context):
         pass

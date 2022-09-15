@@ -1,61 +1,65 @@
+from typing import Optional
+
 import pytest
 from attrs import define
 from testfixtures import compare
 
 from treb.core.address import Address
-from treb.core.artifact import Artifact, ArtifactSpec
+from treb.core.artifact import Artifact
 from treb.core.check import Check, FailedCheck
 from treb.core.config import Config, ProjectConfig, StateConfig
 from treb.core.context import Context
 from treb.core.execute import execute_plan
 from treb.core.plan import Action, ActionState, ActionType, Plan, generate_plan
-from treb.core.resource import Resource, ResourceSpec
+from treb.core.resource import Resource
 from treb.core.step import Step
 from treb.core.strategy import Strategy
 
 
-@define(frozen=True, kw_only=True)
-class ArtifactTestSpec(ArtifactSpec):
-    @classmethod
-    def spec_name(self) -> str:
-        return "test_artifact"
-
-    def exists(self, revision: str) -> bool:
-        return True
-
-
-@define(frozen=True, kw_only=True)
-class ArtifactTest(Artifact):
+class Dummy:
     pass
 
 
 @define(frozen=True, kw_only=True)
-class ResourceTestSpec(ResourceSpec):
+class ArtifactTest(Artifact):
     @classmethod
     def spec_name(self) -> str:
-        return "test_resource"
+        return "test_artifact"
+
+    def resolve(self, ctx: Context) -> Dummy:
+        return Dummy()
 
 
 @define(frozen=True, kw_only=True)
-class ResourceTest(Resource):
+class ResourceTest:
 
     foo: str
 
 
 @define(frozen=True, kw_only=True)
+class ResourceTestSpec(Resource):
+    @classmethod
+    def spec_name(self) -> str:
+        return "test_resource"
+
+    def state(self, ctx: Context) -> Optional[ResourceTest]:
+        return ResourceTest(foo="bar")
+
+
+@define(frozen=True, kw_only=True)
 class StepTest(Step):
 
-    artifact: ArtifactTestSpec
+    artifact: ArtifactTest
     resource: ResourceTestSpec
 
     @classmethod
     def spec_name(self) -> str:
         return "test_step"
 
-    def run(self, ctx) -> ResourceTest:
-        return ResourceTest(foo="abc")
+    def run(self, ctx: Context) -> dict:
+        return {"foo": "abc"}
 
-    def rollback(self, ctx):
+    def rollback(self, ctx: Context):
         pass
 
 
@@ -69,7 +73,7 @@ class CheckTest(Check):
     def spec_name(self) -> str:
         return "test_check"
 
-    def check(self, ctx) -> dict:
+    def check(self, ctx: Context) -> dict:
         if self.fail:
             raise FailedCheck({"passed": False})
 
@@ -92,7 +96,7 @@ def treb_context(tmp_path_factory) -> Context:
         specs={
             "test_step": StepTest,  # type: ignore
             "test_check": CheckTest,  # type: ignore
-            "test_artifact": ArtifactTestSpec,  # type: ignore
+            "test_artifact": ArtifactTest,  # type: ignore
             "test_resource": ResourceTestSpec,  # type: ignore
         },
     )
@@ -103,7 +107,7 @@ def treb_context(tmp_path_factory) -> Context:
 def test_execute_plan__empty_plan_returns_empty_generator(treb_context):
     strategy = Strategy(treb_context)
 
-    strategy.register_artifact("root", ArtifactTestSpec(name="artifact"))
+    strategy.register_artifact("root", ArtifactTest(name="artifact"))
     strategy.register_step(
         "root", StepTest(name="step", artifact="//root:artifact", resource="//root:resource")
     )
@@ -118,7 +122,7 @@ def test_execute_plan__empty_plan_returns_empty_generator(treb_context):
 def test_execute_plan__run_all_actions_successfully():
     strategy = Strategy(treb_context)
 
-    strategy.register_artifact("root", ArtifactTestSpec(name="artifact"))
+    strategy.register_artifact("root", ArtifactTest(name="artifact"))
     strategy.register_step(
         "root", StepTest(name="step", artifact="//root:artifact", resource="//root:resource")
     )
@@ -161,7 +165,7 @@ def test_execute_plan__run_all_actions_successfully():
                         type=ActionType.RUN,
                         address=Address(base="root", name="step"),
                         state=ActionState.DONE,
-                        result=ResourceTest(foo="abc"),
+                        result={"foo": "abc"},
                         error=None,
                     ),
                     Action(
@@ -179,7 +183,7 @@ def test_execute_plan__run_all_actions_successfully():
                         type=ActionType.RUN,
                         address=Address(base="root", name="step"),
                         state=ActionState.DONE,
-                        result=ResourceTest(foo="abc"),
+                        result={"foo": "abc"},
                         error=None,
                     ),
                     Action(
@@ -197,7 +201,7 @@ def test_execute_plan__run_all_actions_successfully():
                         type=ActionType.RUN,
                         address=Address(base="root", name="step"),
                         state=ActionState.DONE,
-                        result=ResourceTest(foo="abc"),
+                        result={"foo": "abc"},
                         error=None,
                     ),
                     Action(
@@ -216,7 +220,7 @@ def test_execute_plan__run_all_actions_successfully():
 def test_execute__fail_check_and_start_rollback():
     strategy = Strategy(treb_context)
 
-    strategy.register_artifact("root", ArtifactTestSpec(name="artifact"))
+    strategy.register_artifact("root", ArtifactTest(name="artifact"))
     strategy.register_step(
         "root", StepTest(name="step", artifact="//root:artifact", resource="//root:resource")
     )
@@ -276,7 +280,7 @@ def test_execute__fail_check_and_start_rollback():
                         type=ActionType.RUN,
                         address=Address(base="root", name="step"),
                         state=ActionState.DONE,
-                        result=ResourceTest(foo="abc"),
+                        result={"foo": "abc"},
                         error=None,
                     ),
                     Action(
@@ -301,7 +305,7 @@ def test_execute__fail_check_and_start_rollback():
                         type=ActionType.RUN,
                         address=Address(base="root", name="step"),
                         state=ActionState.DONE,
-                        result=ResourceTest(foo="abc"),
+                        result={"foo": "abc"},
                         error=None,
                     ),
                     Action(
@@ -326,7 +330,7 @@ def test_execute__fail_check_and_start_rollback():
                         type=ActionType.RUN,
                         address=Address(base="root", name="step"),
                         state=ActionState.DONE,
-                        result=ResourceTest(foo="abc"),
+                        result={"foo": "abc"},
                         error=None,
                     ),
                     Action(
@@ -358,7 +362,7 @@ def test_execute__fail_check_and_start_rollback():
                         type=ActionType.RUN,
                         address=Address(base="root", name="step"),
                         state=ActionState.DONE,
-                        result=ResourceTest(foo="abc"),
+                        result={"foo": "abc"},
                         error=None,
                     ),
                     Action(
@@ -390,7 +394,7 @@ def test_execute__fail_check_and_start_rollback():
                         type=ActionType.RUN,
                         address=Address(base="root", name="step"),
                         state=ActionState.DONE,
-                        result=ResourceTest(foo="abc"),
+                        result={"foo": "abc"},
                         error=None,
                     ),
                     Action(

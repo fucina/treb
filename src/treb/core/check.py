@@ -1,9 +1,13 @@
 """Base class for all the step implemations."""
 import abc
+from typing import TYPE_CHECKING
 
 from attrs import define
 
 from treb.core.spec import Spec
+
+if TYPE_CHECKING:
+    from treb.core.context import Context
 
 
 class FailedCheck(Exception):
@@ -24,7 +28,7 @@ class Check(Spec):
     """
 
     @abc.abstractmethod
-    def check(self, ctx):
+    def check(self, ctx: "Context"):
         """Performs a check on a new deployment.
 
         Arguments:

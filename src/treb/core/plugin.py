@@ -4,9 +4,9 @@ from typing import List, cast
 
 from attrs import define
 
-from treb.core.artifact import ArtifactSpec
+from treb.core.artifact import Artifact
 from treb.core.check import Check
-from treb.core.resource import ResourceSpec
+from treb.core.resource import Resource
 from treb.core.spec import Spec
 from treb.core.step import Step
 
@@ -17,8 +17,8 @@ class Plugin:
 
     namespace: str
     steps: List[Step]
-    artifacts: List[ArtifactSpec]
-    resources: List[ResourceSpec]
+    artifacts: List[Artifact]
+    resources: List[Resource]
     checks: List[Check]
 
     def specs(self) -> List[Spec]:
@@ -41,13 +41,9 @@ def load_plugin(module: str) -> Plugin:
     register = import_module(f"{module}.register")
 
     steps: List[Step] = cast(List[Step], getattr(register, "steps", lambda: [])())
-    artifacts: List[ArtifactSpec] = cast(
-        List[ArtifactSpec], getattr(register, "artifacts", lambda: [])()
-    )
+    artifacts: List[Artifact] = cast(List[Artifact], getattr(register, "artifacts", lambda: [])())
     checks: List[Check] = cast(List[Check], getattr(register, "checks", lambda: [])())
-    resources: List[ResourceSpec] = cast(
-        List[ResourceSpec], getattr(register, "resources", lambda: [])()
-    )
+    resources: List[Resource] = cast(List[Resource], getattr(register, "resources", lambda: [])())
 
     return Plugin(
         namespace=register.namespace(),

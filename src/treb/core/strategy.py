@@ -10,15 +10,15 @@ from typing import Any, Dict, Generic, Type, TypeVar, get_args, get_origin
 from attrs import define, fields
 
 from treb.core.address import Address
-from treb.core.artifact import ArtifactSpec
+from treb.core.artifact import Artifact
 from treb.core.check import Check
 from treb.core.context import Context
 from treb.core.deploy import Vars, discover_deploy_files
-from treb.core.resource import ResourceSpec
-from treb.core.spec import Spec, SpecResult
+from treb.core.resource import Resource
+from treb.core.spec import Spec
 from treb.core.step import Step
 
-ItemType = TypeVar("ItemType", ArtifactSpec, Step, Check, ResourceSpec)
+ItemType = TypeVar("ItemType", Artifact, Step, Check, Resource)
 
 
 @define(frozen=True, kw_only=True)
@@ -43,7 +43,7 @@ def is_addressable_type(type_) -> bool:
     Returns:
         True if it can be used to instantiate a node. Otherwise false.
     """
-    return istype(type_, (Spec, SpecResult))
+    return istype(type_, Spec)
 
 
 def make_address(value: object, base_path: str) -> Address:
@@ -159,12 +159,12 @@ class Strategy:
         ctx: the context where to execute the deploy strategy.
     """
 
-    def __init__(self, ctx):
+    def __init__(self, ctx: Context):
         self._ctx = ctx
-        self._steps = {}
-        self._artifacts = {}
-        self._resources = {}
-        self._rev_graph = defaultdict(dict)
+        self._steps: Dict[Address, Node[Step] | Node[Check]] = {}
+        self._artifacts: Dict[Address, Node[Artifact]] = {}
+        self._resources: Dict[Address, Node[Resource]] = {}
+        self._rev_graph: Dict[Address, Any] = defaultdict(dict)
 
     def ctx(self) -> Context:
         """Gets the context where to execute the deploy strategy."""
@@ -175,17 +175,17 @@ class Strategy:
         deployment strategy."""
         return self.steps() | self.artifacts() | self.resources()
 
-    def steps(self) -> Dict[Address, Step]:
+    def steps(self) -> Dict[Address, Step | Check]:
         """Returns a mapping of addresses to all steps defined in the
         deployment strategy."""
         return {addr: node.item for addr, node in self._steps.items()}
 
-    def artifacts(self) -> Dict[Address, ArtifactSpec]:
+    def artifacts(self) -> Dict[Address, Artifact]:
         """Returns a mapping of addresses to all artifacts defined in the
         deployment strategy."""
         return {addr: node.item for addr, node in self._artifacts.items()}
 
-    def resources(self) -> Dict[Address, ResourceSpec]:
+    def resources(self) -> Dict[Address, Resource]:
         """Returns a mapping of addresses to all resources defined in the
         deployment strategy."""
         return {addr: node.item for addr, node in self._resources.items()}
@@ -201,27 +201,27 @@ class Strategy:
 
         return deps
 
-    def register_artifact(self, path: str, artifact: ArtifactSpec):
+    def register_artifact(self, path: str, artifact: Artifact):
         """Adds an artifact to the deploy strategy.
 
         Arguments:
             path: the base path to the artifact definition.
             artifact: the artifact spec to add.
         """
-        node = Node[ArtifactSpec](
+        node = Node[Artifact](
             address=Address(base=path, name=artifact.name),
             item=artifact,
         )
         self._artifacts[node.address] = node
 
-    def register_resource(self, path: str, resource: ResourceSpec):
+    def register_resource(self, path: str, resource: Resource):
         """Adds a resource to the deploy strategy.
 
         Arguments:
             path: the base path to the resource definition.
             resource: the resource spec to add.
         """
-        node = Node[ResourceSpec](
+        node = Node[Resource](
             address=Address(base=path, name=resource.name),
             item=resource,
         )
@@ -292,13 +292,13 @@ def prepare_strategy(ctx: Context) -> Strategy:
             if issubclass(cls, Step):
                 strategy.register_step(base, item)
 
-            elif issubclass(cls, ArtifactSpec):
+            elif issubclass(cls, Artifact):
                 strategy.register_artifact(base, item)
 
             elif issubclass(cls, Check):
                 strategy.register_check(base, item)
 
-            elif issubclass(cls, ResourceSpec):
+            elif issubclass(cls, Resource):
                 strategy.register_resource(base, item)
 
             else:

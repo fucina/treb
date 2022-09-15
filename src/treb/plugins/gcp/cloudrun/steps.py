@@ -8,7 +8,7 @@ from google.cloud import run_v2
 
 from treb.core.context import Context
 from treb.core.step import Step
-from treb.plugins.docker.artifacts import DockerImageArtifact
+from treb.plugins.docker.artifacts import DockerImage
 from treb.plugins.gcp.cloudrun.resources import CloudRunService, CloudRunServiceSpec
 from treb.utils import log, print_waiting
 
@@ -128,7 +128,7 @@ class CloudRunDeploy(Step):
         return "gcp_cloudrun_deploy"
 
     service: CloudRunServiceSpec | CloudRunService
-    image: DockerImageArtifact
+    image: DockerImage
     traffic_percent: int = 100
 
     def run(self, ctx: Context) -> CloudRunService:
@@ -195,7 +195,7 @@ class CloudRunDeploy(Step):
             uri=service.uri,
         )
 
-    def rollback(self, ctx):
+    def rollback(self, ctx: Context):
         request = run_v2.GetServiceRequest(
             name=self.service.service_name,
         )

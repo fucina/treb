@@ -1,13 +1,19 @@
 """Implementation artifacts used to represt Docker images."""
+from typing import Optional
 from urllib.parse import urlparse, urlunparse
 
 from attrs import define
+from google.cloud import run_v2
 
-from treb.core.resource import Resource, ResourceSpec
+from treb.core.context import Context
+from treb.core.resource import Resource
+from treb.utils import print_waiting
+
+CLIENT = run_v2.ServicesClient()
 
 
 @define(frozen=True, kw_only=True)
-class CloudRunService(Resource):
+class CloudRunService:
     """An artifact representing a Cloud Run Service on GCP."""
 
     service_name: str
@@ -30,7 +36,7 @@ class CloudRunService(Resource):
 
 
 @define(frozen=True, kw_only=True)
-class CloudRunServiceSpec(ResourceSpec):
+class CloudRunServiceSpec(Resource):
     """An artifact spec used to reference a Cloud Run Service on GCP.
 
     Arguments:
@@ -42,3 +48,16 @@ class CloudRunServiceSpec(ResourceSpec):
         return "gcp_cloudrun_service"
 
     service_name: str
+
+    def state(self, ctx: Context) -> Optional[CloudRunService]:
+        with print_waiting("fetching cloudrun service info"):
+            request = run_v2.GetServiceRequest(
+                name=self.service_name,
+            )
+            service = CLIENT.get_service(request)
+
+        return CloudRunService(
+            service_name=service.service_name,
+            revision_id=service.template.revision,
+            uri=service.uri,
+        )

@@ -49,7 +49,7 @@ def apply(ctx: Context, force: bool):
 
     if revision is None or force:
         available_artifacts = [
-            addr for addr, art in strategy.artifacts().items() if art.exists(ctx.revision)
+            addr for addr, art in strategy.artifacts().items() if art.exists(ctx)
         ]
         strategy_plan = generate_plan(strategy, available_artifacts)
 
@@ -80,7 +80,7 @@ def plan(ctx: Context, all_artifacts: bool, force: bool):
             available_artifacts = list(strategy.artifacts().keys())
         else:
             available_artifacts = [
-                addr for addr, art in strategy.artifacts().items() if art.exists(ctx.revision)
+                addr for addr, art in strategy.artifacts().items() if art.exists(ctx)
             ]
 
         strategy_plan = generate_plan(strategy, available_artifacts)

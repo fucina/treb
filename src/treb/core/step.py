@@ -1,9 +1,13 @@
 """Base class for all the step implemations."""
 import abc
+from typing import TYPE_CHECKING
 
 from attrs import define
 
 from treb.core.spec import Spec
+
+if TYPE_CHECKING:
+    from treb.core.context import Context
 
 
 @define(frozen=True, kw_only=True)
@@ -15,7 +19,7 @@ class Step(Spec):
     """
 
     @abc.abstractmethod
-    def run(self, ctx):
+    def run(self, ctx: "Context"):
         """Runs this step.
 
         Arguments:
@@ -24,7 +28,7 @@ class Step(Spec):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def rollback(self, ctx):
+    def rollback(self, ctx: "Context"):
         """Rolls back this step in case of a failure when running ``Step.run`.
 
         Arguments:

@@ -7,11 +7,11 @@ from attrs import define
 from testfixtures import ShouldRaise, compare
 
 from treb.core.address import Address
-from treb.core.artifact import Artifact, ArtifactSpec
+from treb.core.artifact import Artifact
 from treb.core.check import Check, FailedCheck
 from treb.core.config import Config, ProjectConfig, StateConfig
 from treb.core.context import Context
-from treb.core.resource import Resource, ResourceSpec
+from treb.core.resource import Resource
 from treb.core.step import Step
 from treb.core.strategy import (
     Strategy,
@@ -23,32 +23,34 @@ from treb.core.strategy import (
 )
 
 
-@define(frozen=True, kw_only=True)
-class ArtifactTestSpec(ArtifactSpec):
-    @classmethod
-    def spec_name(self) -> str:
-        return "test_artifact"
-
-    def exists(self, revision: str) -> bool:
-        return True
-
-
-@define(frozen=True, kw_only=True)
-class ArtifactTest(Artifact):
+class Dummy:
     pass
 
 
 @define(frozen=True, kw_only=True)
-class ResourceTestSpec(ResourceSpec):
+class ArtifactTestSpec(Artifact):
+    @classmethod
+    def spec_name(self) -> str:
+        return "test_artifact"
+
+    def resolve(self, ctx: Context) -> Dummy:
+        return Dummy()
+
+
+@define(frozen=True, kw_only=True)
+class ResourceTest:
+
+    foo: str
+
+
+@define(frozen=True, kw_only=True)
+class ResourceTestSpec(Resource):
     @classmethod
     def spec_name(self) -> str:
         return "test_resource"
 
-
-@define(frozen=True, kw_only=True)
-class ResourceTest(Resource):
-
-    foo: str
+    def state(self, ctx: Context) -> typing.Optional[ResourceTest]:
+        return ResourceTest(foo="bar")
 
 
 @define(frozen=True, kw_only=True)
@@ -61,10 +63,10 @@ class StepTest(Step):
     def spec_name(self) -> str:
         return "test_step"
 
-    def run(self, ctx) -> ResourceTest:
+    def run(self, ctx: Context) -> ResourceTest:
         return ResourceTest(foo="abc")
 
-    def rollback(self, ctx):
+    def rollback(self, ctx: Context):
         pass
 
 
@@ -78,7 +80,7 @@ class CheckTest(Check):
     def spec_name(self) -> str:
         return "test_check"
 
-    def check(self, ctx) -> dict:
+    def check(self, ctx: Context) -> dict:
         if self.fail:
             raise FailedCheck({"passed": False})
 
@@ -129,18 +131,6 @@ def test_is_addressable_type__returns_true_for_resource_spec():
 
 def test_is_addressable_type__returns_true_for_check():
     res = is_addressable_type(CheckTest)
-
-    compare(res, True)
-
-
-def test_is_addressable_type__returns_true_for_artifact():
-    res = is_addressable_type(ArtifactTest)
-
-    compare(res, True)
-
-
-def test_is_addressable_type__returns_true_for_resource():
-    res = is_addressable_type(ResourceTest)
 
     compare(res, True)
 

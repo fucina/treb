@@ -23,8 +23,3 @@ class Spec(abc.ABC):
     def spec_name(cls) -> str:
         """Returns the name of this type of artifacts."""
         raise NotImplementedError
-
-
-@define(frozen=True, kw_only=True)
-class SpecResult(abc.ABC):
-    """A result produced executing or resolving another spec."""

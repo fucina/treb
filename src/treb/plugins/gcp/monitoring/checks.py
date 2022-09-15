@@ -8,6 +8,7 @@ from attrs import define
 from google.cloud import monitoring_v3
 
 from treb.core.check import Check, FailedCheck
+from treb.core.context import Context
 from treb.plugins.gcp.cloudrun.resources import CloudRunService
 from treb.utils import log, print_waiting
 
@@ -220,7 +221,7 @@ class UptimeCheck(Check):
             datapoints=datapoints,
         )
 
-    def check(self, ctx) -> CloudRunService:
+    def check(self, ctx: Context) -> CloudRunService:
         with print_waiting("setting up uptime check"):
             config = self._setup()
 

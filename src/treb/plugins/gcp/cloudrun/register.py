@@ -1,7 +1,7 @@
 """Register the Docker plugin."""
 from typing import Sequence, Type
 
-from treb.core.resource import ResourceSpec
+from treb.core.resource import Resource
 from treb.core.step import Step
 from treb.plugins.gcp.cloudrun.resources import CloudRunServiceSpec
 from treb.plugins.gcp.cloudrun.steps import CloudRunDeploy
@@ -12,7 +12,7 @@ def namespace() -> str:
     return "gcp_cloudrun"
 
 
-def resources() -> Sequence[Type[ResourceSpec]]:
+def resources() -> Sequence[Type[Resource]]:
     """Returns all GCP Cloud Run artifacts."""
     return [CloudRunServiceSpec]
 

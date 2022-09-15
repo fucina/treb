@@ -20,6 +20,7 @@ Flask = "^2.2.2"
 setuptools = "^65.3.0"
 google-cloud-monitoring = "^2.11.1"
 testfixtures = "^7.0.0"
+cloudflare = "^2.10.1"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
@@ -37,6 +38,13 @@ ignore-patterns = ".*_test.py$"
 
 [tool.pylint.'MESSAGES CONTROL']
 disable = ["too-few-public-methods"]
+
+[tool.pylint.similarities]
+ignore-comments = true
+ignore-docstrings = true
+ignore-imports = true
+ignore-signatures = true
+min-similarity-lines = 4
 
 [tool.bandit]
 skips = "B322"
