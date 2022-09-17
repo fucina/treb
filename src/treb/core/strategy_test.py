@@ -247,10 +247,17 @@ def test_Strategy_dependencies__returns_spec_dependencies(treb_context):
 
     strategy.register_artifact("root", ArtifactTestSpec(name="artifact"))
     strategy.register_step(
-        "root", StepTest(name="step", artifact="//root:artifact", resource="//root:resource")
+        "root",
+        StepTest(
+            name="step",
+            artifact=Address(base="root", name="artifact"),
+            resource=Address(base="root", name="resource"),
+        ),
     )
     strategy.register_resource("root", ResourceTestSpec(name="resource"))
-    strategy.register_check("root", CheckTest(name="check", resource="//root:resource"))
+    strategy.register_check(
+        "root", CheckTest(name="check", resource=Address(base="root", name="resource"))
+    )
 
     compare(strategy.dependencies(Address(base="root", name="artifact")), {})
     compare(

@@ -438,9 +438,16 @@ def test_generate_plan__strategy_with_dependent_steps_generates_all_actions_in_o
 
 def test_generate_plan__can_generate_actions_for_all_specs(treb_context):
     strategy = Strategy(ctx=treb_context)
-    strategy.register_check("root", DummyCheck(name="check", resource="//root:step"))
+    strategy.register_check(
+        "root", DummyCheck(name="check", resource=Address(base="root", name="step"))
+    )
     strategy.register_step(
-        "root", DummyStep(name="step", artifact="//root:artifact", resource="//root:resource")
+        "root",
+        DummyStep(
+            name="step",
+            artifact=Address(base="root", name="artifact"),
+            resource=Address(base="root", name="resource"),
+        ),
     )
     strategy.register_resource("root", DummyResourceSpec(name="resource"))
     strategy.register_artifact("root", DummyArtifact(name="artifact"))
@@ -494,8 +501,12 @@ def test_generate_plan__can_generate_plan_for_diamond_shaped_dependencies(treb_c
 def test_generate_plan__raise_AddressNotFound_if_nodes_use_unknown_addresses(treb_context):
     strategy = Strategy(ctx=treb_context)
     strategy.register_artifact("root", DummyArtifact(name="artifact"))
-    strategy.register_step("root", DummyStep(name="step-foo", artifact="//root:not-found"))
-    strategy.register_check("root", DummyCheck(name="check", resource="//root:impossible"))
+    strategy.register_step(
+        "root", DummyStep(name="step-foo", artifact=Address(base="root", name="not-found"))
+    )
+    strategy.register_check(
+        "root", DummyCheck(name="check", resource=Address(base="root", name="impossible"))
+    )
 
     available_artifacts = list(strategy.artifacts().keys())
 
