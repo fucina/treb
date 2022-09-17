@@ -1,11 +1,10 @@
 """Rules for planning and executing a treb deploy strategy."""
 import copy
 import os
-import types
-import typing
 from collections import defaultdict
+from functools import partial
 from pathlib import Path
-from typing import Any, Dict, Generic, Type, TypeVar, get_args, get_origin
+from typing import Any, Dict, Generic, TypeVar
 
 from attrs import define, fields
 
@@ -85,71 +84,6 @@ def istype(cls, type_):
 
 
 ArgType = TypeVar("ArgType")
-
-
-def extract_addresses(  # pylint: disable=too-many-return-statements,too-many-branches
-    arg_type: Type[ArgType],
-    value: Any,
-    base_path: str,
-):
-    """Inspects the type and value of a field to find all its dependency
-    addresses.
-
-    Arguemnts:
-        arg_type: the expected field type.
-        value: the value assigned to the field.
-        base_path: the path of the deploy file where the field's step was defined.
-
-    Returns:
-        The addresses extracted from the value in the same for as they were provided.
-    """
-    origin = get_origin(arg_type)
-    if origin is not None:
-        args = get_args(arg_type)
-
-        if origin is typing.Union or issubclass(origin, types.UnionType):
-            for arg in args:
-                try:
-                    if isinstance(value, arg):
-                        return value
-
-                except TypeError:
-                    pass
-
-            for arg in args:
-                if is_addressable_type(arg):
-                    try:
-                        return make_address(value, base_path)
-
-                    except TypeError:
-                        pass
-
-                else:
-                    try:
-                        return extract_addresses(arg, value, base_path)
-                    except TypeError:
-                        pass
-
-        if istype(origin, dict):
-            _, value_type = args
-
-            return {
-                nested_key: extract_addresses(value_type, nested_value, base_path)
-                for nested_key, nested_value in value.items()
-            }
-
-        if istype(origin, list):
-            return [extract_addresses(args[0], nested_value, base_path) for nested_value in value]
-
-    if is_addressable_type(arg_type):
-        return make_address(value, base_path)
-
-    if isinstance(value, arg_type):
-        return value
-
-    raise TypeError(
-        f"value of type {type(value).__name__} cannot be assign to type {arg_type.__name__}"
-    )
 
 
 class Strategy:
@@ -244,11 +178,7 @@ class Strategy:
         self._steps[address] = node
 
         for field in fields(type(step)):
-            value = getattr(step, field.name)
-
-            addresses = extract_addresses(field.type, value, path)
-            if addresses is not None:
-                self._rev_graph[node.address][field.name] = addresses
+            self._rev_graph[node.address][field.name] = getattr(step, field.name)
 
     def register_check(self, path: str, check: Check):
         """Adds a check to the deploy strategy.
@@ -267,11 +197,7 @@ class Strategy:
         self._steps[address] = node
 
         for field in fields(type(check)):
-            value = getattr(check, field.name)
-
-            addresses = extract_addresses(field.type, value, path)
-            if addresses is not None:
-                self._rev_graph[node.address][field.name] = addresses
+            self._rev_graph[node.address][field.name] = getattr(check, field.name)
 
 
 def prepare_strategy(ctx: Context) -> Strategy:
@@ -316,9 +242,13 @@ def prepare_strategy(ctx: Context) -> Strategy:
         )
 
         base = "" if base_path == Path() else str(base_path)
-        specs = {key: _register(str(base), value) for key, value in ctx.specs.items()}
+        specs = {key: _register(base, value) for key, value in ctx.specs.items()}
 
-        exec_globals: Dict[str, Any] = {"var": Vars(ctx.config.vars), **specs}
+        exec_globals: Dict[str, Any] = {
+            "var": Vars(ctx.config.vars),
+            "address": partial(Address.from_string, base),
+            **specs,
+        }
 
         exec(  # nosec[B102:exec_used] pylint: disable=exec-used
             deploy_file.code,

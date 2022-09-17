@@ -5,36 +5,10 @@ from attrs import define
 from treb.core.context import Context
 from treb.core.step import Step
 from treb.plugins.docker.artifacts import DockerImage, DockerImageSpec
+from treb.plugins.docker.utils import full_tag
 from treb.utils import log, print_waiting
 
 CLIENT = docker.from_env()
-
-
-@define(frozen=True, kw_only=True)
-class DockerPull(Step):
-    """Pulls a docker image from a remote registry.
-
-    Arguments:
-        origin: spec of the image to pull.
-    """
-
-    @classmethod
-    def spec_name(cls) -> str:
-        return "docker_pull"
-
-    origin: DockerImageSpec
-
-    def run(self, ctx: Context) -> DockerImage:
-        tag = f"{self.origin.image_name}:{self.origin.tag_prefix}{ctx.revision}"
-
-        with print_waiting("pulling docker image"):
-            CLIENT.images.pull(tag)
-            log(f"pulled docker image {tag}")
-
-        return DockerImage(tag=tag)
-
-    def rollback(self, ctx: Context):
-        pass
 
 
 @define(frozen=True, kw_only=True)
@@ -50,18 +24,24 @@ class DockerPush(Step):
     def spec_name(cls) -> str:
         return "docker_push"
 
-    origin: DockerImage
-    dest: DockerImageSpec
+    origin: DockerImageSpec
+
+    dest_image_name: str
+    dest_tag_prefix: str = ""
 
     def run(self, ctx: Context) -> DockerImage:
-        dest_tag = f"{self.dest.image_name}:{self.dest.tag_prefix}{ctx.revision}"
+        origin_image = self.origin.resolve(ctx)
+        if origin_image is None:
+            raise Exception(f"image for revision {ctx.revision} does not exist")
 
-        image = CLIENT.images.get(self.origin.tag)
+        dest_tag = full_tag(self.dest_image_name, self.dest_tag_prefix, ctx.revision)
+
+        image = CLIENT.images.get(origin_image.tag)
         image.tag(dest_tag)
 
         with print_waiting("pushing docker image"):
             CLIENT.images.push(dest_tag)
-            log(f"pushed docker image from {self.origin.tag} to {dest_tag}")
+            log(f"pushed docker image from {origin_image.tag} to {dest_tag}")
 
         return DockerImage(tag=dest_tag)
 

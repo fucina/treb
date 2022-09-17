@@ -6,23 +6,10 @@ from attrs import define
 
 from treb.core.artifact import Artifact
 from treb.core.context import Context
+from treb.plugins.docker.utils import full_tag
 from treb.utils import log, print_waiting
 
 CLIENT = docker.from_env()
-
-
-def create_full_tag(image_name: str, tag_prefix: str, revision: str) -> str:
-    """Creates the image full tag (image name + tag) for a specific revision.
-
-    Argument:
-        image_name: the image's name (i.e. `ghcr.io/fucina/treb`)
-        tag_prefix: string prepended to the tag (i.e. `rev-`).
-        revision: the revision identifier.
-
-    Returns:
-        The full image tag (i.e. `ghcr.io/fucina/treb:rev-abc`)
-    """
-    return f"{image_name}:{tag_prefix}{revision}"
 
 
 @define(frozen=True, kw_only=True)
@@ -48,7 +35,7 @@ class DockerImageSpec(Artifact):
         return "docker_image"
 
     def exists(self, ctx: Context) -> bool:
-        tag = create_full_tag(self.image_name, self.tag_prefix, ctx.revision)
+        tag = full_tag(self.image_name, self.tag_prefix, ctx.revision)
 
         with print_waiting("checking registry data"):
             try:
@@ -60,7 +47,7 @@ class DockerImageSpec(Artifact):
         return True
 
     def resolve(self, ctx: Context) -> Optional[DockerImage]:
-        tag = create_full_tag(self.image_name, self.tag_prefix, ctx.revision)
+        tag = full_tag(self.image_name, self.tag_prefix, ctx.revision)
 
         with print_waiting("pulling docker image"):
             CLIENT.images.pull(tag)

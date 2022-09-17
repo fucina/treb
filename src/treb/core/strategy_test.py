@@ -13,14 +13,7 @@ from treb.core.config import Config, ProjectConfig, StateConfig
 from treb.core.context import Context
 from treb.core.resource import Resource
 from treb.core.step import Step
-from treb.core.strategy import (
-    Strategy,
-    extract_addresses,
-    is_addressable_type,
-    istype,
-    make_address,
-    prepare_strategy,
-)
+from treb.core.strategy import Strategy, is_addressable_type, istype, make_address, prepare_strategy
 
 
 class Dummy:
@@ -208,89 +201,6 @@ def test_istype__behave_same_as_subclass(cls, class_or_tuple):
     expected = issubclass(cls, class_or_tuple)
 
     compare(res, expected)
-
-
-def test_extract_addresses__return_unchanged_address():
-    res = extract_addresses(ArtifactTestSpec, Address(base="foo", name="bar"), "root")
-
-    compare(res, Address(base="foo", name="bar"))
-
-
-def test_extract_addresses__transform_relative_string_into_address():
-    res = extract_addresses(ArtifactTestSpec, ":foo", "root")
-
-    compare(res, Address(base="root", name="foo"))
-
-
-def test_extract_addresses__transform_absolute_string_into_address():
-    res = extract_addresses(ArtifactTestSpec, "//foo:bar", "root")
-
-    compare(res, Address(base="foo", name="bar"))
-
-
-def test_extract_addresses__optional_with_valid_value_return_address():
-    res = extract_addresses(typing.Optional[ArtifactTestSpec], "//foo:bar", "root")
-
-    compare(res, Address(base="foo", name="bar"))
-
-
-def test_extract_addresses__optional_with_none_return_none():
-    res = extract_addresses(typing.Optional[ArtifactTestSpec], None, "root")
-
-    compare(res, None)
-
-
-def test_extract_addresses__optional_dict_with_no_address_returns_none():
-    res = extract_addresses(typing.Optional[typing.Dict[str, str]], None, "root")
-
-    compare(res, None)
-
-
-def test_extract_addresses__optional_dict_with_no_address_returns_dict():
-    res = extract_addresses(typing.Optional[typing.Dict[str, str]], {"foo": "bar"}, "root")
-
-    compare(res, {"foo": "bar"})
-
-
-def test_extract_addresses__transform_addresses_in_dict():
-    res = extract_addresses(
-        typing.Dict[str, ArtifactTestSpec | typing.Dict[str, ArtifactTestSpec]],
-        {"main": "//foo:bar", "nested": {"two": ":bar"}},
-        "root",
-    )
-
-    compare(
-        res,
-        {
-            "main": Address(base="foo", name="bar"),
-            "nested": {"two": Address(base="root", name="bar")},
-        },
-    )
-
-
-def test_extract_addresses__transform_addresses_in_dict_ignore_non_addres():
-    res = extract_addresses(
-        typing.Dict[str, ArtifactTestSpec | int], {"foo": "//foo:bar", "bar": 1}, "root"
-    )
-
-    compare(res, {"foo": Address(base="foo", name="bar"), "bar": 1})
-
-
-def test_extract_addresses__transform_addresses_in_list():
-    res = extract_addresses(typing.List[ArtifactTestSpec], ["//foo:bar", ":bar"], "root")
-
-    compare(res, [Address(base="foo", name="bar"), Address(base="root", name="bar")])
-
-
-def test_extract_addresses__transform_addresses_in_list_ignore_non_address():
-    res = extract_addresses(typing.List[int | ArtifactTestSpec], [1, "//foo:bar", ":bar"], "root")
-
-    compare(res, [1, Address(base="foo", name="bar"), Address(base="root", name="bar")])
-
-
-def test_extract_addresses_raise_TypeError_if_value_does_not_match_type():
-    with ShouldRaise(TypeError):
-        extract_addresses(int, "foo", "root")
 
 
 def test_prepare_strategy__no_deploy_file_return_empty_strategy(treb_context):

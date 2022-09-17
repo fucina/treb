@@ -23,8 +23,8 @@ def _execute_plan_planned(plan: Plan, action_idx: int) -> Plan:
 
 def _perform_run(strategy: Strategy, address: Address, step: Step, results):
     dep_artifacts = resolve_addresses(
-        strategy.artifacts() | strategy.resources() | results,
         strategy.dependencies(address),
+        strategy.artifacts() | strategy.resources() | results,
     )
     item = evolve(step, **dep_artifacts)
 
@@ -39,8 +39,8 @@ def _perform_run(strategy: Strategy, address: Address, step: Step, results):
 
 def _perform_check(strategy: Strategy, address: Address, check: Check, results):
     dep_artifacts = resolve_addresses(
-        strategy.artifacts() | strategy.resources() | results,
         strategy.dependencies(address),
+        strategy.artifacts() | strategy.resources() | results,
     )
 
     check = evolve(check, **dep_artifacts)
@@ -61,8 +61,8 @@ def _perform_check(strategy: Strategy, address: Address, check: Check, results):
 
 def _perform_rollback(strategy: Strategy, address: Address, step: Step, results):
     dep_artifacts = resolve_addresses(
-        strategy.artifacts() | strategy.resources() | results,
         strategy.dependencies(address),
+        strategy.artifacts() | strategy.resources() | results,
     )
 
     with print_waiting(f"rollback {address}"):

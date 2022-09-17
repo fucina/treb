@@ -127,7 +127,7 @@ class CloudRunDeploy(Step):
     def spec_name(cls) -> str:
         return "gcp_cloudrun_deploy"
 
-    service: CloudRunServiceSpec | CloudRunService
+    service: CloudRunServiceSpec
     image: DockerImage
     traffic_percent: int = 100
 
@@ -137,29 +137,29 @@ class CloudRunDeploy(Step):
         )
         service = CLIENT.get_service(request)
 
-        if isinstance(self.service, CloudRunServiceSpec):
-            annotations = ServiceAnnotations(
-                revision=ctx.revision, previous_revision_id=service.template.revision
-            )
-            prev_revision_id = service.template.revision
+        prev_revision_id = service.template.revision
+        annotations = ServiceAnnotations(
+            revision=ctx.revision,
+            previous_revision_id=prev_revision_id,
+        )
 
-            revision_id = prepare_revision_id(ctx.revision, int(time.time()))
+        revision_id = prepare_revision_id(ctx.revision, int(time.time()))
 
-            service.template.revision = revision_id
-            service.template.containers[0].image = self.image.tag
+        service.template.revision = revision_id
+        service.template.containers[0].image = self.image.tag
 
-            service.annotations = {
-                **service.annotations,
-                **encode_annotations(annotations),
-            }
+        service.annotations = {
+            **service.annotations,
+            **encode_annotations(annotations),
+        }
 
-        elif isinstance(self.service, CloudRunService):
-            annotations = load_annotations(service.annotations)
+        # elif isinstance(self.service, CloudRunService):
+        #     annotations = load_annotations(service.annotations)
 
-            prev_revision_id = annotations.previous_revision_id
-            revision_id = service.template.revision
+        #     prev_revision_id = annotations.previous_revision_id
+        #     revision_id = service.template.revision
 
-            service.template.containers[0].image = self.image.tag
+        #     service.template.containers[0].image = self.image.tag
 
         service.traffic = [
             run_v2.TrafficTarget(

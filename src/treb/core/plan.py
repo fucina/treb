@@ -2,6 +2,7 @@
 describing all the actions needed to complete a deployment."""
 import enum
 import operator
+from functools import singledispatch
 from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 from attrs import define
@@ -86,7 +87,8 @@ class UnresolvableAddress(Exception):
         self.address = address
 
 
-def resolve_addresses(mapping, value):
+@singledispatch
+def resolve_addresses(value, mapping):  # pylint: disable=unused-argument
     """Visits the dependency addresses in `addresses` and creates a dictionary
     with the same structure but replacing all the addresses with its
     corresponding artifact using the mapping `items`.
@@ -94,35 +96,53 @@ def resolve_addresses(mapping, value):
     If any of th addresses cannot be resolved, it will return `None`.
 
     Arguments:
-        mapping: contains all the known artifact used for the address resolution.
         value: all the dependency addresses to resolve.
+        mapping: contains all the known artifact used for the address resolution.
 
     Returns:
         A copy of the dictionary with the addresses replaced by the artifacts.
         `None` if any of the addresses cannot be resolved.
     """
-    if isinstance(value, Address):
-        try:
-            resolved = mapping[value]
+    return value
 
-            if value.attr is None:
-                return resolved
 
-            return operator.attrgetter(value.attr)(resolved)
+@resolve_addresses.register
+def resolve_addresses_address(value: Address, mapping) -> Any:
+    """See `resolve_addresses`."""
+    try:
+        resolved = mapping[value]
 
-        except KeyError as exc:
-            raise UnresolvableAddress(value) from exc
+        if value.attr is None:
+            return resolved
 
-    elif isinstance(value, dict):
-        return {
-            key: resolve_addresses(mapping, nested_value) for key, nested_value in value.items()
-        }
+        return operator.attrgetter(value.attr)(resolved)
 
-    elif isinstance(value, list):
-        return [resolve_addresses(mapping, nested_value) for nested_value in value]
+    except KeyError as exc:
+        raise UnresolvableAddress(value) from exc
 
-    else:
-        return value
+
+@resolve_addresses.register
+def resolve_addresses_dict(value: dict, mapping) -> dict:
+    """See `resolve_addresses`."""
+    return {key: resolve_addresses(nested_value, mapping) for key, nested_value in value.items()}
+
+
+@resolve_addresses.register
+def resolve_addresses_list(value: list, mapping) -> list:
+    """See `resolve_addresses`."""
+    return [resolve_addresses(nested_value, mapping) for nested_value in value]
+
+
+@resolve_addresses.register
+def resolve_addresses_tuple(value: tuple, mapping) -> tuple:
+    """See `resolve_addresses`."""
+    return tuple(resolve_addresses(nested_value, mapping) for nested_value in value)
+
+
+@resolve_addresses.register
+def resolve_addresses_set(value: set, mapping) -> set:
+    """See `resolve_addresses`."""
+    return {resolve_addresses(nested_value, mapping) for nested_value in value}
 
 
 _RESULT_PLACEHOLDER = object()
@@ -188,10 +208,7 @@ def generate_plan(strategy: "Strategy", available_artifacts: List[Address]) -> P
             dep_addresses = strategy.dependencies(step_addr)
 
             try:
-                resolve_addresses(
-                    results,
-                    dep_addresses,
-                )
+                resolve_addresses(dep_addresses, results)
 
             except UnresolvableAddress as exc:
                 unresolvable_addresses.append(exc.address)
