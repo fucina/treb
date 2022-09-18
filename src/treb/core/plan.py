@@ -3,7 +3,7 @@ describing all the actions needed to complete a deployment."""
 import enum
 import operator
 from functools import singledispatch
-from typing import TYPE_CHECKING, Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set
 
 from attrs import define
 
@@ -145,7 +145,15 @@ def resolve_addresses_set(value: set, mapping) -> set:
     return {resolve_addresses(nested_value, mapping) for nested_value in value}
 
 
-_RESULT_PLACEHOLDER = object()
+_DUMMY = object()
+
+
+class _ResultPlaceholder:
+    def __getattr__(self, name):
+        return _DUMMY
+
+
+_RESULT_PLACEHOLDER = _ResultPlaceholder()
 
 
 class UnknownAddresses(Exception):
@@ -175,7 +183,10 @@ def _get_action_type(spec: Spec) -> ActionType:
     raise TypeError(f"spec of type {type(spec).__name__} cannot create an action")
 
 
-def generate_plan(strategy: "Strategy", available_artifacts: List[Address]) -> Plan:
+def generate_plan(  # pylint: disable=too-many-locals
+    strategy: "Strategy",
+    available_artifacts: List[Address],
+) -> Plan:
     """Generates a new plan for the deployment strategy.
 
     Arguments:
@@ -186,8 +197,11 @@ def generate_plan(strategy: "Strategy", available_artifacts: List[Address]) -> P
         The plan with all the steps to deploy the available artifacts.
     """
     steps = strategy.steps()
-    artifacts: Dict[Address, Spec] = {
-        addr: art for addr, art in strategy.artifacts().items() if addr in available_artifacts
+
+    artifacts: Dict[Address, Any] = {
+        addr: art.resolve(strategy.ctx())
+        for addr, art in strategy.artifacts().items()
+        if addr in available_artifacts
     }
     resources = strategy.resources()
 
@@ -196,15 +210,22 @@ def generate_plan(strategy: "Strategy", available_artifacts: List[Address]) -> P
 
     prev_steps = None
     unresolvable_addresses: List[Address] = []
+    skip_addresses: Set[Address] = set(
+        addr for addr in strategy.artifacts() if addr not in available_artifacts
+    )
 
     while steps:
         if list(sorted(steps.items())) == prev_steps:
             raise UnknownAddresses(addresses=unresolvable_addresses)
 
-        unresolvable_addresses = []
         prev_steps = list(sorted(steps.items()))
 
+        unresolvable_addresses = []
+
         for step_addr, step in list(sorted(steps.items())):
+            if step_addr in skip_addresses:
+                continue
+
             dep_addresses = strategy.dependencies(step_addr)
 
             try:
@@ -212,6 +233,10 @@ def generate_plan(strategy: "Strategy", available_artifacts: List[Address]) -> P
 
             except UnresolvableAddress as exc:
                 unresolvable_addresses.append(exc.address)
+                if exc.address in skip_addresses:
+                    skip_addresses.add(step_addr)
+                    del steps[step_addr]
+
                 continue
 
             after = [Address.from_string(step_addr.base, address) for address in step.after]

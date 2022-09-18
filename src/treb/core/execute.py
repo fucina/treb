@@ -24,7 +24,7 @@ def _execute_plan_planned(plan: Plan, action_idx: int) -> Plan:
 def _perform_run(strategy: Strategy, address: Address, step: Step, results):
     dep_artifacts = resolve_addresses(
         strategy.dependencies(address),
-        strategy.artifacts() | strategy.resources() | results,
+        results,
     )
     item = evolve(step, **dep_artifacts)
 
@@ -40,7 +40,7 @@ def _perform_run(strategy: Strategy, address: Address, step: Step, results):
 def _perform_check(strategy: Strategy, address: Address, check: Check, results):
     dep_artifacts = resolve_addresses(
         strategy.dependencies(address),
-        strategy.artifacts() | strategy.resources() | results,
+        results,
     )
 
     check = evolve(check, **dep_artifacts)
@@ -62,7 +62,7 @@ def _perform_check(strategy: Strategy, address: Address, check: Check, results):
 def _perform_rollback(strategy: Strategy, address: Address, step: Step, results):
     dep_artifacts = resolve_addresses(
         strategy.dependencies(address),
-        strategy.artifacts() | strategy.resources() | results,
+        results,
     )
 
     with print_waiting(f"rollback {address}"):
@@ -142,7 +142,11 @@ def execute_plan(strategy: Strategy, plan: Plan) -> Iterable[Plan]:
     Yields:
         A new state of the after each action state change.
     """
-    results: Dict[Address, Any] = {}
+    results: Dict[Address, Any] = {
+        addr: art.resolve(strategy.ctx())
+        for addr, art in strategy.artifacts().items()
+        if art.exists(strategy.ctx())
+    } | strategy.resources()
 
     idx = 0
 

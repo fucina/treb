@@ -1,9 +1,9 @@
 """Main entrypoint for the `treb` command."""
 import os
 from typing import Optional
-from rich.table import Table
 
 import click
+from rich.table import Table
 
 from treb.core.config import load_config
 from treb.core.context import Context, load_context
@@ -12,7 +12,7 @@ from treb.core.git import get_current_commit
 from treb.core.plan import generate_plan
 from treb.core.state import init_revision, init_state, load_revision, save_revision
 from treb.core.strategy import prepare_strategy
-from treb.utils import log, print_info, print_waiting, CONSOLE
+from treb.utils import CONSOLE, log, print_info, print_waiting
 
 
 @click.group()
@@ -117,6 +117,7 @@ def artifacts(ctx: Context, exist: bool):
         table.add_row(*row)
 
     CONSOLE.print(table)
+
 
 if __name__ == "__main__":
     cli()  # pylint: disable=no-value-for-parameter

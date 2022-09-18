@@ -523,3 +523,36 @@ def test_generate_plan__raise_AddressNotFound_if_nodes_use_unknown_addresses(tre
             Address(base="root", name="not-found"),
         ],
     )
+
+
+def test_generate_plan__skip_unreachable_steps(treb_context):
+    strategy = Strategy(ctx=treb_context)
+    strategy.register_artifact("root", DummyArtifact(name="artifact-exists"))
+    strategy.register_step(
+        "root",
+        DummyStep(name="step-reachable", artifact=Address(base="root", name="artifact-exists")),
+    )
+
+    strategy.register_artifact("root", DummyArtifact(name="artifact-does-not-exist"))
+    strategy.register_step(
+        "root",
+        DummyStep(
+            name="step-unreachable", artifact=Address(base="root", name="artifact-does-not-exist")
+        ),
+    )
+
+    available_artifacts = [Address(base="root", name="artifact-exists")]
+
+    res = generate_plan(
+        strategy,
+        available_artifacts,
+    )
+
+    compare(
+        res,
+        Plan(
+            actions=[
+                Action(type=ActionType.RUN, address=Address(base="root", name="step-reachable")),
+            ]
+        ),
+    )
