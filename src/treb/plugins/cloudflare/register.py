@@ -6,6 +6,7 @@ from treb.core.resource import Resource
 from treb.core.step import Step
 from treb.plugins.cloudflare.artifacts import PagesDeploymentSpec
 from treb.plugins.cloudflare.resources import PagesProjectSpec
+from treb.plugins.cloudflare.steps import CloudflareUpdateDns
 
 
 def namespace() -> str:
@@ -20,7 +21,7 @@ def artifacts() -> Sequence[Type[Artifact]]:
 
 def steps() -> Sequence[Type[Step]]:
     """Returns all Cloudflare steps."""
-    return []
+    return [CloudflareUpdateDns]
 
 
 def resources() -> Sequence[Type[Resource]]:

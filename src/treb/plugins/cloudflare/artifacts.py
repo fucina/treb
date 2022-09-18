@@ -1,5 +1,6 @@
 """Implementation artifacts used to represt Docker images."""
 from typing import Optional
+from urllib.parse import urlparse
 
 import CloudFlare
 from attrs import define
@@ -14,10 +15,18 @@ CLIENT = CloudFlare.CloudFlare(raw=True)
 class PagesDeployment:
     """An artifact representing a Cloudflare Pages Deployment."""
 
+    spec: "PagesDeploymentSpec"
     account_id: str
     project_name: str
     deployment_id: str
     url: str
+
+    @property
+    def url_hostname(self) -> str:
+        """Returns the hostname of the deployment's URL."""
+        url = urlparse(self.url)
+
+        return url.hostname or ""
 
 
 @define(frozen=True, kw_only=True)
@@ -53,6 +62,7 @@ class PagesDeploymentSpec(Artifact):
                 commit_hash = deployment["deployment_trigger"]["metadata"]["commit_hash"]
                 if commit_hash == ctx.revision:
                     return PagesDeployment(
+                        spec=self,
                         account_id=self.account_id,
                         project_name=self.project_name,
                         deployment_id=deployment["id"],
