@@ -93,26 +93,26 @@ def plan(ctx: Context, all_artifacts: bool, force: bool):
 
 
 @cli.command()
-@click.option("-r", "--resolve", is_flag=True, default=False)
+@click.option("-e", "--exist", is_flag=True, default=False)
 @click.pass_obj
-def artifacts(ctx: Context, resolve: bool):
+def artifacts(ctx: Context, exist: bool):
     """Shows all the artifacts."""
     strategy = prepare_strategy(ctx=ctx)
 
     table = Table(title="Artifacts")
     table.add_column("Address", justify="left", no_wrap=True)
 
-    if resolve:
-        table.add_column("Resolve", justify="right")
+    if exist:
+        table.add_column("Exists", justify="right")
 
     for address, artifact in strategy.artifacts().items():
         row = [str(address)]
 
-        if resolve:
-            with print_waiting(f"resolving artifact {address}"):
-                res = artifact.resolve(ctx)
-            
-            row.append(str(res))
+        if exist:
+            with print_waiting(f"checking if artifact {address} exists"):
+                exists = artifact.exists(ctx)
+
+                row.append("[green] yes" if exists else "no")
 
         table.add_row(*row)
 
