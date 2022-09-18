@@ -16,6 +16,7 @@ CLIENT = docker.from_env()
 class DockerImage:
     """An artifact representing a tagged and existing Docker iamge."""
 
+    spec: "DockerImageSpec"
     tag: str
 
 
@@ -53,4 +54,4 @@ class DockerImageSpec(Artifact):
             CLIENT.images.pull(tag)
             log(f"pulled docker image {tag}")
 
-        return DockerImage(tag=tag)
+        return DockerImage(spec=self, tag=tag)

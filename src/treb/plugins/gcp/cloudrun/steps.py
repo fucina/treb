@@ -153,14 +153,6 @@ class CloudRunDeploy(Step):
             **encode_annotations(annotations),
         }
 
-        # elif isinstance(self.service, CloudRunService):
-        #     annotations = load_annotations(service.annotations)
-
-        #     prev_revision_id = annotations.previous_revision_id
-        #     revision_id = service.template.revision
-
-        #     service.template.containers[0].image = self.image.tag
-
         service.traffic = [
             run_v2.TrafficTarget(
                 type_=(run_v2.TrafficTargetAllocationType.TRAFFIC_TARGET_ALLOCATION_TYPE_REVISION),
