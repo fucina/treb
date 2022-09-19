@@ -198,11 +198,7 @@ def generate_plan(  # pylint: disable=too-many-locals
     """
     steps = strategy.steps()
 
-    artifacts: Dict[Address, Any] = {
-        addr: art.resolve(strategy.ctx())
-        for addr, art in strategy.artifacts().items()
-        if addr in available_artifacts
-    }
+    artifacts: Dict[Address, Any] = {addr: _RESULT_PLACEHOLDER for addr in available_artifacts}
     resources = strategy.resources()
 
     actions = []

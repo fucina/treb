@@ -9,10 +9,10 @@ from treb.core.config import load_config
 from treb.core.context import Context, load_context
 from treb.core.execute import execute_plan
 from treb.core.git import get_current_commit
-from treb.core.plan import generate_plan
+from treb.core.plan import ActionState, generate_plan
 from treb.core.state import init_revision, init_state, load_revision, save_revision
 from treb.core.strategy import prepare_strategy
-from treb.utils import CONSOLE, log, print_info, print_waiting
+from treb.utils import CONSOLE, log, print_waiting
 
 
 @click.group()
@@ -89,7 +89,43 @@ def plan(ctx: Context, all_artifacts: bool, force: bool):
     else:
         strategy_plan = revision.plan
 
-    print_info(f"plan: {strategy_plan}")
+    table = Table(title="Plan")
+    table.add_column("#", justify="right")
+    table.add_column("Type", justify="right")
+    table.add_column("Address")
+    table.add_column("State", justify="right")
+    table.add_column("Result", justify="right")
+    table.add_column("Error", justify="right")
+
+    for idx, action in enumerate(strategy_plan.actions):
+        row = [str(idx), action.type.name, str(action.address)]
+
+        match action.state:
+            case ActionState.PLANNED:
+                state = "planned"
+
+            case ActionState.IN_PROGRESS:
+                state = "[cyan] in progress"
+
+            case ActionState.FAILED:
+                state = "[red] failed"
+
+            case ActionState.DONE:
+                state = "[green] done"
+
+            case ActionState.CANCELLED:
+                state = "[dim] cancelled"
+
+            case _:
+                raise ValueError(f"unknown state {action.state}")
+
+        row.append(state)
+        row.append("-" if action.result is None else str(action.result))
+        row.append("-" if action.error is None else str(action.error))
+
+        table.add_row(*row)
+
+    CONSOLE.print(table)
 
 
 @cli.command()
