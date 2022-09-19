@@ -17,7 +17,7 @@
 //     "docker<7.0.0,>=6.0.0",
 //     "dulwich<0.21.0,>=0.20.45",
 //     "google-cloud-monitoring<3.0.0,>=2.11.1",
-//     "google-cloud-run<0.4.0,>=0.3.0",
+//     "google-cloud-run<0.5.0,>=0.4.0",
 //     "rich<13.0.0,>=12.5.1",
 //     "setuptools<66.0.0,>=65.3.0",
 //     "testfixtures<8.0.0,>=7.0.0",
@@ -152,19 +152,19 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "0aa1a42fbd57645fabeb6290a7687c21755b0344ecaeaa05f4e9f6207ae2e9a8",
-              "url": "https://files.pythonhosted.org/packages/ca/87/bf1fab5dc5d8ecd30fab4ecb6114881b5cc3859e5d4a6c9b2c48f7d70276/certifi-2022.6.15.2-py3-none-any.whl"
+              "hash": "e232343de1ab72c2aa521b625c80f699e356830fd0e2c620b465b304b17b0516",
+              "url": "https://files.pythonhosted.org/packages/6a/34/cd29f4dd8a23ce45f2b8ce9631ff2d4205fb74eddb412a3dc4fd1e4aa800/certifi-2022.9.14-py3-none-any.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "aa08c101214127b9b0472ca6338315113c9487d45376fd3e669201b477c71003",
-              "url": "https://files.pythonhosted.org/packages/05/a8/e0966dcf948a9ab9321f23f121a37b96be191b15dc28e9134927fd42a8af/certifi-2022.6.15.2.tar.gz"
+              "hash": "36973885b9542e6bd01dea287b2b4b3b21236307c56324fcc3f1160f2d655ed5",
+              "url": "https://files.pythonhosted.org/packages/ca/48/88ec470f8b68319b6782ca3a0570789886ad5ca24c1af2f3771699135baa/certifi-2022.9.14.tar.gz"
             }
           ],
           "project_name": "certifi",
           "requires_dists": [],
           "requires_python": ">=3.6",
-          "version": "2022.6.15.2"
+          "version": "2022.9.14"
         },
         {
           "artifacts": [
@@ -384,13 +384,13 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "325529859836a479244b0882c1a77320fd35cb108df2ec1232e3e908ea56eda4",
-              "url": "https://files.pythonhosted.org/packages/9e/1c/9d378e15863decbdb1709d117ff04102470d057a6638af4f71e2f0eb7406/google_api_core-2.10.0-py3-none-any.whl"
+              "hash": "92d17123cfe399b5ef7e026c63babf978d8475e1ac877919eb7933e25dea2273",
+              "url": "https://files.pythonhosted.org/packages/a3/53/a3021487219a54c92d88be0bd182282b8103c65a9e27cb2e8339ec799e3d/google_api_core-2.10.1-py3-none-any.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "1d053734f14591939e7764e99c31253fed46bf2578da0dcd82821f17a6dd991c",
-              "url": "https://files.pythonhosted.org/packages/79/ed/a8fa14ea999c72670fb7c788b5c349ca7fef9c7998f45f4ab1f0d64a5988/google-api-core-2.10.0.tar.gz"
+              "hash": "e16c15a11789bc5a3457afb2818a3540a03f341e6e710d7f9bbf6cde2ef4a7c8",
+              "url": "https://files.pythonhosted.org/packages/0e/a9/d000e7562c27b3c7c037bc11dfe18093197e225dc712cc9120932e33e0ab/google-api-core-2.10.1.tar.gz"
             }
           ],
           "project_name": "google-api-core",
@@ -405,7 +405,7 @@
             "requests<3.0.0dev,>=2.18.0"
           ],
           "requires_python": ">=3.7",
-          "version": "2.10"
+          "version": "2.10.1"
         },
         {
           "artifacts": [
@@ -465,25 +465,24 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "41f8375e2df2e8f4962992bc969ecb4274011aadcbf1378a01efd18c3477165e",
-              "url": "https://files.pythonhosted.org/packages/df/27/d9ddb9d74cfd581cfecd01347bd26312bb86c7bad9ba37849ea5b5888f42/google_cloud_run-0.3.0-py2.py3-none-any.whl"
+              "hash": "1d24051aba6fc845efc7a40b7d53212ab62f1f56e999656209ea751cab2ec179",
+              "url": "https://files.pythonhosted.org/packages/39/ba/a01d82da1d457bef975bbc00b8bb87e0d56bc0a8fb32e85ba6e345074d56/google_cloud_run-0.4.0-py2.py3-none-any.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "d0f7a69a1b9c212eeca2c2e1dc370457765d5073b655dc6b95bcbe705aab5b5d",
-              "url": "https://files.pythonhosted.org/packages/3c/41/e545d23646439bef70b177b1dc2a795ebca9dff4c5ecda0b50cd70bf493d/google-cloud-run-0.3.0.tar.gz"
+              "hash": "2db165bc78fbd32f2895f6d29133c2c1db3c8032357b7f82d3ad300b06cabb22",
+              "url": "https://files.pythonhosted.org/packages/ec/3a/c36c2473fbf36374e829341558170bdc9c13c70dc60227e722bf7e42a0cc/google-cloud-run-0.4.0.tar.gz"
             }
           ],
           "project_name": "google-cloud-run",
           "requires_dists": [
-            "google-api-core[grpc]!=2.0.*,!=2.1.*,!=2.2.*,!=2.3.*,!=2.4.*,!=2.5.*,!=2.6.*,!=2.7.*,<3.0.0dev,>=1.32.0",
-            "googleapis-common-protos<2.0.0dev,>=1.56.1",
+            "google-api-core[grpc]!=2.0.*,!=2.1.*,!=2.2.*,!=2.3.*,!=2.4.*,!=2.5.*,!=2.6.*,!=2.7.*,<3.0.0dev,>=1.33.0",
             "grpc-google-iam-v1<1.0.0dev,>=0.12.4",
             "proto-plus<2.0.0dev,>=1.22.0",
-            "protobuf<5.0.0dev,>=3.19.0"
+            "protobuf<5.0.0dev,>=3.20.1"
           ],
           "requires_python": ">=3.7",
-          "version": "0.3"
+          "version": "0.4"
         },
         {
           "artifacts": [
@@ -616,19 +615,19 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "84d9dd047ffa80596e0f246e2eab0b391788b0503584e8945f2368256d2735ff",
-              "url": "https://files.pythonhosted.org/packages/04/a2/d918dcd22354d8958fe113e1a3630137e0fc8b44859ade3063982eacd2a4/idna-3.3-py3-none-any.whl"
+              "hash": "90b77e79eaa3eba6de819a0c442c0b4ceefc341a7a2ab77d7562bf49f425c5c2",
+              "url": "https://files.pythonhosted.org/packages/fc/34/3030de6f1370931b9dbb4dad48f6ab1015ab1d32447850b9fc94e60097be/idna-3.4-py3-none-any.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "9d643ff0a55b762d5cdb124b8eaa99c66322e2157b69160bc32796e824360e6d",
-              "url": "https://files.pythonhosted.org/packages/62/08/e3fc7c8161090f742f504f40b1bccbfc544d4a4e09eb774bf40aafce5436/idna-3.3.tar.gz"
+              "hash": "814f528e8dead7d329833b91c5faa87d60bf71824cd12a7530b5526063d02cb4",
+              "url": "https://files.pythonhosted.org/packages/8b/e1/43beb3d38dba6cb420cefa297822eac205a277ab43e5ba5d5c46faf96438/idna-3.4.tar.gz"
             }
           ],
           "project_name": "idna",
           "requires_dists": [],
           "requires_python": ">=3.5",
-          "version": "3.3"
+          "version": "3.4"
         },
         {
           "artifacts": [
@@ -798,49 +797,49 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "3ec6f5b37935406bb9df9b277e79f8ed81d697146e07ef2ba8a5a272fb24b2c9",
-              "url": "https://files.pythonhosted.org/packages/3a/22/6ed8c38e212aa01660aba6655bad074bfa52b7cae3742c52b361d62c1f79/protobuf-4.21.5-py3-none-any.whl"
+              "hash": "c7c864148a237f058c739ae7a05a2b403c0dfa4ce7d1f3e5213f352ad52d57c6",
+              "url": "https://files.pythonhosted.org/packages/d9/c2/ddee769393393e2a15b902a73b884c90eb8d6094e7b005511b1eb84882e0/protobuf-4.21.6-py3-none-any.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "eb1106e87e095628e96884a877a51cdb90087106ee693925ec0a300468a9be3a",
-              "url": "https://files.pythonhosted.org/packages/51/90/d2bf065b8753951e5fdba822af358edae6dac055b81f018e1ec74d8ba71e/protobuf-4.21.5.tar.gz"
+              "hash": "6b1040a5661cd5f6e610cbca9cfaa2a17d60e2bb545309bc1b278bb05be44bdd",
+              "url": "https://files.pythonhosted.org/packages/0e/25/693cd589793e7ae429ef76ab08f74b7866d342fd079cc4c723141a9660d3/protobuf-4.21.6.tar.gz"
             },
             {
               "algorithm": "sha256",
-              "hash": "bf711b451212dc5b0fa45ae7dada07d8e71a4b0ff0bc8e4783ee145f47ac4f82",
-              "url": "https://files.pythonhosted.org/packages/59/29/1ae13c23a166b3ce3ae4975e8bc7a4fe7f3e4f39568544b3125321bafca7/protobuf-4.21.5-py2.py3-none-any.whl"
+              "hash": "b6cea204865595a92a7b240e4b65bcaaca3ad5d2ce25d9db3756eba06041138e",
+              "url": "https://files.pythonhosted.org/packages/0f/3b/523691c80572934090a76c19b92fddbaf2a3c3947ae0fee75bc8a78ed8df/protobuf-4.21.6-cp37-abi3-manylinux2014_x86_64.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "e5c5a2886ae48d22a9d32fbb9b6636a089af3cd26b706750258ce1ca96cc0116",
-              "url": "https://files.pythonhosted.org/packages/64/af/40a701d627dd57e3aa6476e5a1928d5824badabf97a126a184bdb1881cc2/protobuf-4.21.5-cp310-abi3-win_amd64.whl"
+              "hash": "49f88d56a9180dbb7f6199c920f5bb5c1dd0172f672983bb281298d57c2ac8eb",
+              "url": "https://files.pythonhosted.org/packages/1e/7a/c1e9be1870890dff897a29531ca80634cf3cfef0c3ca282d975e5460dd2e/protobuf-4.21.6-cp310-abi3-win32.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "ee04f5823ed98bb9a8c3b1dc503c49515e0172650875c3f76e225b223793a1f2",
-              "url": "https://files.pythonhosted.org/packages/67/d1/31a7d82bb24712f61efa06d0bdeb85ca50b24f2d23edfa3e9ee7b8a9304f/protobuf-4.21.5-cp37-abi3-macosx_10_9_universal2.whl"
+              "hash": "ba596b9ffb85c909fcfe1b1a23136224ed678af3faf9912d3fa483d5f9813c4e",
+              "url": "https://files.pythonhosted.org/packages/82/82/c9ddd52f7fae517092c284fa192f914a8fa3b45aaf435fc1ddf6bb2c831c/protobuf-4.21.6-cp37-abi3-macosx_10_9_universal2.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "5e0b272217aad8971763960238c1a1e6a65d50ef7824e23300da97569a251c55",
-              "url": "https://files.pythonhosted.org/packages/a8/93/1d71d31bc80e569412c808a23c53df87c935ed3dbd787056bcd5b2929cbe/protobuf-4.21.5-cp37-abi3-manylinux2014_x86_64.whl"
+              "hash": "07a0bb9cc6114f16a39c866dc28b6e3d96fa4ffb9cc1033057412547e6e75cb9",
+              "url": "https://files.pythonhosted.org/packages/ad/87/b811820454bc74c065c136e78559426fddbacd7b75ea7d179f25b75ad825/protobuf-4.21.6-py2.py3-none-any.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "b04484d6f42f48c57dd2737a72692f4c6987529cdd148fb5b8e5f616862a2e37",
-              "url": "https://files.pythonhosted.org/packages/db/26/9b61372afe964e918f44ed198be845d4094eab2eda75970e24e6dca8c30b/protobuf-4.21.5-cp37-abi3-manylinux2014_aarch64.whl"
+              "hash": "4143513c766db85b9d7c18dbf8339673c8a290131b2a0fe73855ab20770f72b0",
+              "url": "https://files.pythonhosted.org/packages/be/24/4d042f59b63d8d79c6c11fbf5f7cea4855d16c02cde0ad94020bc15dca73/protobuf-4.21.6-cp37-abi3-manylinux2014_aarch64.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "5310cbe761e87f0c1decce019d23f2101521d4dfff46034f8a12a53546036ec7",
-              "url": "https://files.pythonhosted.org/packages/fd/c5/87a3c071e095c7ec58afaf104903c11cc3019ea21e853bdef9bc8f8f874b/protobuf-4.21.5-cp310-abi3-win32.whl"
+              "hash": "7a6cc8842257265bdfd6b74d088b829e44bcac3cca234c5fdd6052730017b9ea",
+              "url": "https://files.pythonhosted.org/packages/f2/96/ef9fa1a6e672a7f476c4c8a93025466e587ce87623b4696b6cf5a734c60b/protobuf-4.21.6-cp310-abi3-win_amd64.whl"
             }
           ],
           "project_name": "protobuf",
           "requires_dists": [],
           "requires_python": ">=3.7",
-          "version": "4.21.5"
+          "version": "4.21.6"
         },
         {
           "artifacts": [
@@ -1328,7 +1327,7 @@
     "docker<7.0.0,>=6.0.0",
     "dulwich<0.21.0,>=0.20.45",
     "google-cloud-monitoring<3.0.0,>=2.11.1",
-    "google-cloud-run<0.4.0,>=0.3.0",
+    "google-cloud-run<0.5.0,>=0.4.0",
     "rich<13.0.0,>=12.5.1",
     "setuptools<66.0.0,>=65.3.0",
     "testfixtures<8.0.0,>=7.0.0",
