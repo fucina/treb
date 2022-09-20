@@ -132,6 +132,3 @@ dmypy.json
 /.pants.*
 /dist/
 /.pids
-
-# examples
-examples/state/
