@@ -131,7 +131,10 @@ class CloudRunDeploy(Step):
     image: DockerImage
     traffic_percent: int = 100
 
-    def run(self, ctx: Context) -> CloudRunService:
+    def snapshot(self, ctx: "Context") -> None:
+        return None
+
+    def run(self, ctx: Context, snapshot: None) -> CloudRunService:
         request = run_v2.GetServiceRequest(
             name=self.service.service_name,
         )
@@ -187,7 +190,7 @@ class CloudRunDeploy(Step):
             uri=service.uri,
         )
 
-    def rollback(self, ctx: Context):
+    def rollback(self, ctx: Context, snapshot: None):
         request = run_v2.GetServiceRequest(
             name=self.service.service_name,
         )

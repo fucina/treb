@@ -29,7 +29,10 @@ class DockerPush(Step):
     dest_image_name: str
     dest_tag_prefix: str = ""
 
-    def run(self, ctx: Context) -> DockerImage:
+    def snapshot(self, ctx: "Context") -> None:
+        return None
+
+    def run(self, ctx: Context, snapshot: None) -> DockerImage:
         if self.origin is None:
             raise Exception(f"image for revision {ctx.revision} does not exist")
 
@@ -51,5 +54,5 @@ class DockerPush(Step):
             tag=dest_tag,
         )
 
-    def rollback(self, ctx: Context):
+    def rollback(self, ctx: Context, snapshot: None):
         pass

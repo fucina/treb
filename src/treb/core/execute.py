@@ -1,8 +1,10 @@
 """Rules for planning and executing a treb deploy strategy."""
 import copy
+import inspect
 from typing import Any, Dict, Iterable, Tuple, cast
 
 from attrs import evolve
+from cattrs import structure, unstructure
 
 from treb.core.address import Address
 from treb.core.check import Check, FailedCheck
@@ -12,26 +14,56 @@ from treb.core.strategy import Strategy
 from treb.utils import error, print_waiting, rollback, success
 
 
-def _execute_plan_planned(plan: Plan, action_idx: int) -> Plan:
+def _execute_plan_planned(strategy: Strategy, plan: Plan, action_idx: int, results) -> Plan:
     action = plan.actions[action_idx]
-    new_actions = copy.deepcopy(plan.actions)
-    new_action = evolve(action, state=ActionState.IN_PROGRESS)
+    new_action = evolve(
+        action,
+        state=ActionState.IN_PROGRESS,
+    )
 
+    if action.type is ActionType.RUN:
+        action = plan.actions[action_idx]
+        new_actions = copy.deepcopy(plan.actions)
+
+        step = strategy.steps().get(action.address)
+        if step is None:
+            raise ValueError(f"step {action.address} does not exist")
+
+        if not isinstance(step, Step):
+            raise TypeError(f"node {action.address} is not a step")
+
+        dep_artifacts = resolve_addresses(
+            strategy.dependencies(action.address),
+            results,
+        )
+        item = evolve(step, **dep_artifacts)
+
+        snapshot = item.snapshot(strategy.ctx())
+        new_action = evolve(new_action, snapshot=unstructure(snapshot))
+
+    new_actions = copy.deepcopy(plan.actions)
     new_actions[action_idx] = new_action
+
     return evolve(plan, actions=new_actions)
 
 
-def _perform_run(strategy: Strategy, address: Address, step: Step, results):
+def _perform_run(strategy: Strategy, address: Address, snapshot, step: Step, results):
     dep_artifacts = resolve_addresses(
         strategy.dependencies(address),
         results,
     )
     item = evolve(step, **dep_artifacts)
 
+    if isinstance(step, Step):
+        decoded_snapshot = structure(snapshot, inspect.signature(item.snapshot).return_annotation)
+
+    else:
+        decoded_snapshot = None
+
     res = None
 
     with print_waiting(f"step {address}"):
-        res = item.run(strategy.ctx())
+        res = item.run(strategy.ctx(), decoded_snapshot)
         success(f"step completed address={address}")
 
     return res
@@ -59,15 +91,17 @@ def _perform_check(strategy: Strategy, address: Address, check: Check, results):
     return res
 
 
-def _perform_rollback(strategy: Strategy, address: Address, step: Step, results):
+def _perform_rollback(strategy: Strategy, address: Address, snapshot, step: Step, results):
     dep_artifacts = resolve_addresses(
         strategy.dependencies(address),
         results,
     )
+    item = evolve(step, **dep_artifacts)
+
+    decoded_snapshot = structure(inspect.signature(item.snapshot).return_annotation, snapshot)
 
     with print_waiting(f"rollback {address}"):
-        item = evolve(step, **dep_artifacts)
-        res = item.rollback(strategy.ctx())
+        res = item.rollback(strategy.ctx(), decoded_snapshot)
 
         rollback(
             f"rolled back address={address}",
@@ -95,6 +129,7 @@ def _execute_plan_in_progress(
                 res = _perform_run(
                     strategy,
                     action.address,
+                    action.snapshot,
                     cast(Step, spec),
                     results,
                 )
@@ -103,6 +138,7 @@ def _execute_plan_in_progress(
                 res = _perform_rollback(
                     strategy,
                     action.address,
+                    action.snapshot,
                     cast(Step, spec),
                     results,
                 )
@@ -158,7 +194,7 @@ def execute_plan(strategy: Strategy, plan: Plan) -> Iterable[Plan]:
 
         match action.state:
             case ActionState.PLANNED:
-                plan = _execute_plan_planned(plan, idx)
+                plan = _execute_plan_planned(strategy, plan, idx, results)
 
                 yield plan
 

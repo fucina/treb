@@ -120,8 +120,8 @@ def plan(ctx: Context, all_artifacts: bool, force: bool):
                 raise ValueError(f"unknown state {action.state}")
 
         row.append(state)
-        row.append("-" if action.result is None else str(action.result))
-        row.append("-" if action.error is None else str(action.error))
+        row.append("" if action.result is None else str(action.result))
+        row.append("" if action.error is None else str(action.error))
 
         table.add_row(*row)
 

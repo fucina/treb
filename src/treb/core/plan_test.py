@@ -314,10 +314,13 @@ class DummyStep(Step):
     def spec_name(self) -> str:
         return "dummy_step"
 
-    def run(self, ctx: Context) -> None:
+    def snapshot(self, ctx: "Context") -> None:
         return None
 
-    def rollback(self, ctx: Context):
+    def run(self, ctx: Context, snapshot: None) -> None:
+        return None
+
+    def rollback(self, ctx: Context, snapshot: None):
         pass
 
 

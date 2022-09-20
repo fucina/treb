@@ -23,11 +23,14 @@ class Wait(Step):
 
     duration: float
 
-    def run(self, ctx: Context):
+    def snapshot(self, ctx: "Context") -> None:
+        return None
+
+    def run(self, ctx: Context, snapshot: None) -> None:
         with print_waiting(f"waiting for {self.duration} seconds"):
             time.sleep(self.duration)
 
         log(f"waited for {self.duration} seconds")
 
-    def rollback(self, ctx: Context):
+    def rollback(self, ctx: Context, snapshot: None):
         pass

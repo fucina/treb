@@ -56,10 +56,13 @@ class StepTest(Step):
     def spec_name(self) -> str:
         return "test_step"
 
-    def run(self, ctx: Context) -> ResourceTest:
+    def snapshot(self, ctx: "Context") -> None:
+        return None
+
+    def run(self, ctx: Context, snapshot: None) -> ResourceTest:
         return ResourceTest(foo="abc")
 
-    def rollback(self, ctx: Context):
+    def rollback(self, ctx: Context, snapshot: None):
         pass
 
 

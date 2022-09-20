@@ -5,7 +5,8 @@ import operator
 from functools import singledispatch
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set
 
-from attrs import define
+from attrs import define, evolve, fields
+from attrs import has as has_attrs
 
 from treb.core.address import Address
 from treb.core.check import Check
@@ -66,8 +67,9 @@ class Action:
     type: ActionType
     address: Address
     state: ActionState = ActionState.PLANNED
-    result: Optional[Dict[str, str]] = None
-    error: Optional[Dict[str, str]] = None
+    snapshot: Optional[Dict[str, Any]] = None
+    result: Optional[Dict[str, Any]] = None
+    error: Optional[Dict[str, Any]] = None
 
 
 @define(frozen=True, kw_only=True)
@@ -103,7 +105,21 @@ def resolve_addresses(value, mapping):  # pylint: disable=unused-argument
         A copy of the dictionary with the addresses replaced by the artifacts.
         `None` if any of the addresses cannot be resolved.
     """
+    if has_attrs(value):
+        return resolve_addresses_attrs(value, mapping)
+
     return value
+
+
+def resolve_addresses_attrs(value: Address, mapping) -> Any:
+    """See `resolve_addresses`."""
+    return evolve(
+        value,
+        **{
+            field.name: resolve_addresses(getattr(value, field.name), mapping)
+            for field in fields(type(value))
+        },
+    )
 
 
 @resolve_addresses.register
