@@ -93,6 +93,16 @@ jobs:
         export GIT_COMMIT=${{ github.sha }}
         ./pants publish ::
       if: github.ref == 'refs/heads/main'
+    - name: Dev Release
+      uses: "marvinpinto/action-automatic-releases@latest"
+      with:
+        repo_token: "${{ secrets.GITHUB_TOKEN }}"
+        automatic_release_tag: "main"
+        prerelease: true
+        title: "Development Build"
+        files: |
+          dist/src.treb/bin.pex
+      if: github.ref == 'refs/heads/main'
     - name: Upload pants log
       uses: actions/upload-artifact@v3
       with:
