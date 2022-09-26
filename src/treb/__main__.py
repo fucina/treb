@@ -22,13 +22,14 @@ from treb.utils import CONSOLE, log, print_waiting
 @click.pass_context
 def cli(ctx: click.Context, config_path: str, revision: Optional[str], cwd: Optional[str]):
     """Entrypoint for the treb command."""
+    if cwd is not None:
+        os.chdir(cwd)
+
     config = load_config(path=config_path)
     revision = revision or get_current_commit(path=config.project.repo_path)
 
     ctx.obj = load_context(config=config, revision=revision)
 
-    if cwd is not None:
-        os.chdir(cwd)
 
 
 @cli.command()
