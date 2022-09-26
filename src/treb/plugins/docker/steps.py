@@ -1,4 +1,6 @@
 """All the steps provided by the docker system."""
+import json
+
 import docker
 from attrs import define
 
@@ -42,7 +44,9 @@ class DockerPush(Step):
         image.tag(dest_tag)
 
         with print_waiting("pushing docker image"):
-            CLIENT.images.push(dest_tag)
+            res = CLIENT.images.push(dest_tag)
+            _check_push_result(res)
+
             log(f"pushed docker image from {self.origin.tag} to {dest_tag}")
 
         return DockerImage(
@@ -56,3 +60,11 @@ class DockerPush(Step):
 
     def rollback(self, ctx: Context, snapshot: None):
         pass
+
+
+def _check_push_result(output: str):
+    last_line = [line.strip() for line in output.split("\r\n") if line.strip()][-1]
+    data = json.loads(last_line)
+
+    if "error" in data:
+        raise Exception(data["error"])

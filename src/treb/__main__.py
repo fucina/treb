@@ -31,7 +31,6 @@ def cli(ctx: click.Context, config_path: str, revision: Optional[str], cwd: Opti
     ctx.obj = load_context(config=config, revision=revision)
 
 
-
 @cli.command()
 @click.option("-f", "--force", is_flag=True, default=False)
 @click.pass_obj
