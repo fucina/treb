@@ -162,14 +162,20 @@ class CloudRunDeploy(Step):
                 revision=revision_id,
                 percent=min(self.traffic_percent, 100),
                 tag="latest",
-            ),
-            run_v2.TrafficTarget(
-                type_=(run_v2.TrafficTargetAllocationType.TRAFFIC_TARGET_ALLOCATION_TYPE_REVISION),
-                revision=prev_revision_id,
-                percent=100 - self.traffic_percent,
-                tag="previous",
-            ),
+            )
         ]
+
+        if prev_revision_id:
+            service.traffic.append(
+                run_v2.TrafficTarget(
+                    type_=(
+                        run_v2.TrafficTargetAllocationType.TRAFFIC_TARGET_ALLOCATION_TYPE_REVISION
+                    ),
+                    revision=prev_revision_id,
+                    percent=100 - self.traffic_percent,
+                    tag="previous",
+                )
+            )
 
         with print_waiting(f"deploying new service {service.name}"):
             log(
