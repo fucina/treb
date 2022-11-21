@@ -1,5 +1,5 @@
 [GLOBAL]
-pants_version = "2.12.1rc2"
+pants_version = "2.14.0"
 
 print_stacktrace = true
 
