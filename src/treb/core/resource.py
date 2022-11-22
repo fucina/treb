@@ -11,15 +11,15 @@ if TYPE_CHECKING:
     from treb.core.context import Context
 
 
-StateType = TypeVar("StateType")
+StateT = TypeVar("StateT")
 
 
 @define(frozen=True, kw_only=True)
-class Resource(Generic[StateType], Spec):
+class Resource(Generic[StateT], Spec):
     """Base class for all resource specs supported by treb."""
 
     @abc.abstractmethod
-    def state(self, ctx: "Context") -> Optional[StateType]:
+    def state(self, ctx: "Context") -> Optional[StateT]:
         """Fetches the current state of the resource.
 
         Arguments:

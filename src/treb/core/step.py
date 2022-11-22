@@ -10,19 +10,19 @@ if TYPE_CHECKING:
     from treb.core.context import Context
 
 
-ResultType = TypeVar("ResultType")
-SnapshotType = TypeVar("SnapshotType")
+ResultT = TypeVar("ResultT")
+SnapshotT = TypeVar("SnapshotT")
 
 
 @define(frozen=True, kw_only=True)
-class Step(Generic[ResultType, SnapshotType], Spec):
+class Step(Generic[ResultT, SnapshotT], Spec):
     """Base class to be used for all steps.
 
     Arguments:
         name: identify a step within a deploy file.
     """
 
-    def snapshot(self, ctx: "Context") -> SnapshotType:
+    def snapshot(self, ctx: "Context") -> SnapshotT:
         """Takes a snapshot of the state before running the step. This data is
         useful when rolling back a step to its previous state.
 
@@ -35,7 +35,7 @@ class Step(Generic[ResultType, SnapshotType], Spec):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def run(self, ctx: "Context", snapshot: SnapshotType) -> ResultType:
+    def run(self, ctx: "Context", snapshot: SnapshotT) -> ResultT:
         """Runs this step.
 
         Arguments:
@@ -48,7 +48,7 @@ class Step(Generic[ResultType, SnapshotType], Spec):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def rollback(self, ctx: "Context", snapshot: SnapshotType):
+    def rollback(self, ctx: "Context", snapshot: SnapshotT):
         """Rolls back this step in case of a failure when running ``Step.run`.
 
         Arguments:

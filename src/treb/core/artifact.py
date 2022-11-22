@@ -11,11 +11,11 @@ if TYPE_CHECKING:
     from treb.core.context import Context
 
 
-ArtifactType = TypeVar("ArtifactType")
+ArtifactT = TypeVar("ArtifactT")
 
 
 @define(frozen=True, kw_only=True)
-class Artifact(Generic[ArtifactType], Spec):
+class Artifact(Generic[ArtifactT], Spec):
     """Base class for all artifact supported by treb."""
 
     def exists(self, ctx: "Context") -> bool:
@@ -34,7 +34,7 @@ class Artifact(Generic[ArtifactType], Spec):
         return self.resolve(ctx) is not None
 
     @abc.abstractmethod
-    def resolve(self, ctx: "Context") -> Optional[ArtifactType]:
+    def resolve(self, ctx: "Context") -> Optional[ArtifactT]:
         """Fetches all the data related to this artifact.
 
         Argument:

@@ -17,11 +17,11 @@ from treb.core.resource import Resource
 from treb.core.spec import Spec
 from treb.core.step import Step
 
-ItemType = TypeVar("ItemType", Artifact, Step, Check, Resource)
+ItemT = TypeVar("ItemT", Artifact, Step, Check, Resource)
 
 
 @define(frozen=True, kw_only=True)
-class Node(Generic[ItemType]):
+class Node(Generic[ItemT]):
     """Represents a node in the strategy graph.
 
     Arguments:
@@ -30,7 +30,7 @@ class Node(Generic[ItemType]):
     """
 
     address: Address
-    item: ItemType
+    item: ItemT
 
 
 def is_addressable_type(type_) -> bool:
@@ -83,7 +83,7 @@ def istype(cls, type_):
         return False
 
 
-ArgType = TypeVar("ArgType")
+ArgT = TypeVar("ArgT")
 
 
 class Strategy:
