@@ -110,13 +110,13 @@ colorama = {version = "*", markers = "platform_system == \"Windows\""}
 
 [[package]]
 name = "cloudflare"
-version = "2.10.1"
+version = "2.11.1"
 description = "Python wrapper for the Cloudflare v4 API"
 category = "main"
 optional = false
 python-versions = "*"
 files = [
-    {file = "cloudflare-2.10.1.tar.gz", hash = "sha256:c0b81bec79c3497dce54254d94177dee2220fa0d2781a0d693b25cb397ca73b9"},
+    {file = "cloudflare-2.11.1.tar.gz", hash = "sha256:540120accf45f4cfc78cbef6e91ce87c94ff49cf11e96205fc3fe0647e67701b"},
 ]
 
 [package.dependencies]
