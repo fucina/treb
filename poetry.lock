@@ -316,14 +316,14 @@ reauth = ["pyu2f (>=0.1.5)"]
 
 [[package]]
 name = "google-cloud-monitoring"
-version = "2.14.2"
+version = "2.15.0"
 description = "Stackdriver Monitoring API client library"
 category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "google-cloud-monitoring-2.14.2.tar.gz", hash = "sha256:e6fda130979e2e8d759ab70d6427b5948481948c96f5fd4a42370ba96a11959b"},
-    {file = "google_cloud_monitoring-2.14.2-py2.py3-none-any.whl", hash = "sha256:43cca0adb1ff387ebe099414f9af957532c23723cb377c23cd9f88fd84e1bc3f"},
+    {file = "google-cloud-monitoring-2.15.0.tar.gz", hash = "sha256:c3a0426ecd25a70da53b2a9079d71731229a8496a4edae8d3785eccbbf828d5b"},
+    {file = "google_cloud_monitoring-2.15.0-py2.py3-none-any.whl", hash = "sha256:79a644d40d30f612a105c0505c7eba07286e4389e4ada0c3a73eb63bc5d542b4"},
 ]
 
 [package.dependencies]
