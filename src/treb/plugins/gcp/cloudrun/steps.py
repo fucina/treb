@@ -84,7 +84,7 @@ def clean_annotations(annotations: Mapping[str, str]) -> Dict[str, str]:
     }
 
 
-def prepare_revision_id(revision: str, timestamp: int) -> str:
+def prepare_revision_id(service_name: str, revision: str, timestamp: int) -> str:
     """Generates a revision ID for a new Cloud Run service revision used to
     identify a service revision.
 
@@ -99,8 +99,9 @@ def prepare_revision_id(revision: str, timestamp: int) -> str:
         The revision ID for the new service revision.
     """
     postfix = hex(timestamp)[2:].lower()
+    service_id = service_name.split("/")[-1]
 
-    return f"rev-{revision}-{postfix}"
+    return f"{service_id}-rev-{revision}-{postfix}"
 
 
 @define(frozen=True, kw_only=True)
@@ -146,7 +147,7 @@ class CloudRunDeploy(Step):
             previous_revision_id=prev_revision_id,
         )
 
-        revision_id = prepare_revision_id(ctx.revision, int(time.time()))
+        revision_id = prepare_revision_id(self.service.service_name, ctx.revision, int(time.time()))
 
         service.template.revision = revision_id
         service.template.containers[0].image = self.image.tag
