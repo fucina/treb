@@ -1,4 +1,4 @@
-"""Register the Docker plugin."""
+"""Register the GCP Cloud Run plugin."""
 from typing import Sequence, Type
 
 from treb.core.resource import Resource

@@ -1,4 +1,4 @@
-"""Implementation artifacts used to represt Docker images."""
+"""Implementation of the resources used to represent Cloud Run services."""
 from typing import Optional
 from urllib.parse import urlparse, urlunparse
 
@@ -14,7 +14,7 @@ CLIENT = run_v2.ServicesClient()
 
 @define(frozen=True, kw_only=True)
 class CloudRunService:
-    """An artifact representing a Cloud Run Service on GCP."""
+    """A resource representing a Cloud Run Service on GCP."""
 
     service_name: str
     revision_id: str
@@ -37,7 +37,7 @@ class CloudRunService:
 
 @define(frozen=True, kw_only=True)
 class CloudRunServiceSpec(Resource):
-    """An artifact spec used to reference a Cloud Run Service on GCP.
+    """A resource spec used to reference a Cloud Run Service on GCP.
 
     Arguments:
         image_name: the name of the image without the tag.

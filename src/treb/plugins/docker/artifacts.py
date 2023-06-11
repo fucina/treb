@@ -1,4 +1,4 @@
-"""Implementation artifacts used to represt Docker images."""
+"""Implementation artifacts used to represent Docker images."""
 from typing import Optional
 
 import docker
