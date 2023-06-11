@@ -79,7 +79,7 @@ class EcsServiceSnapshot:
     """
 
     family: str
-    revision: int
+    revision: str
 
 
 @define(frozen=True, kw_only=True)

@@ -3,7 +3,6 @@ pex_binary(
     entry_point="__main__.py",
     dependencies=[
         # force plugins to be included even if they are not directly used anywhere else in the codebase.
-        "//src/treb/plugins/aws/ecs/register.py",
         "//src/treb/plugins/cloudflare/register.py",
         "//src/treb/plugins/docker/register.py",
         "//src/treb/plugins/gcp/cloudrun/register.py",

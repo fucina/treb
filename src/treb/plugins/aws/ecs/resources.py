@@ -58,6 +58,7 @@ class EcsServiceSpec(Resource):
         family, _, revision = task_defintion_arn.rpartition("/")[2].partition(":")
 
         return EcsService(
+            spec=self,
             task_definition_family=family,
             task_definition_revision=revision,
         )
